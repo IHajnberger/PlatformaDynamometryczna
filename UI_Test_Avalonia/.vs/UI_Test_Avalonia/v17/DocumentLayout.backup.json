@@ -1,0 +1,62 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\Projekt filinski\\UI_Test_Avalonia\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|e:\\projekt filinski\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|e:\\projekt filinski\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\mainwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.axaml",
+              "DocumentMoniker": "E:\\Projekt filinski\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\MainWindow.axaml",
+              "ToolTip": "E:\\Projekt filinski\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
+              "RelativeToolTip": "UI_Test_Avalonia\\MainWindow.axaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-05-13T11:45:54.706Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.axaml.cs",
+              "DocumentMoniker": "E:\\Projekt filinski\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "ToolTip": "E:\\Projekt filinski\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T11:45:52.793Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

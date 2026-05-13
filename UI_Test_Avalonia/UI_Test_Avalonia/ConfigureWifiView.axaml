@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             x:Class="UI_Test_Avalonia.ConfigureWifiView">
+    <StackPanel Margin="20" Spacing="10">
+        <TextBlock Text="Configure WiFi Settings" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
+
+        <Button Content="Scan for ESP" HorizontalAlignment="Left" Click="ScanButton_Click" />
+        <TextBlock x:Name="StatusTextBlock" Text="Status: Waiting to scan..." Foreground="Gray" />
+
+        <StackPanel x:Name="InputPanel" Spacing="10" IsEnabled="False">
+            <TextBlock Text="SSID (Network Name):" />
+            <TextBox x:Name="SsidTextBox" />
+
+            <TextBlock Text="Password:" />
+            <TextBox x:Name="PasswordTextBox" PasswordChar="*"  />
+
+
+            <Button Content="Connect" HorizontalAlignment="Right" Margin="0,10,0,0" Click="ConnectButton_Click" />
+        </StackPanel>
+        <Button Content="Change WiFi" Click="ChangeWifiButton_Click" Margin="0,10,0,0" />
+
+    </StackPanel>
+</UserControl>

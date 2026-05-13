@@ -2,8 +2,33 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI_Test_Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="UI_Test_Avalonia.MainWindow"
-        Title="UI_Test_Avalonia">
-    Welcome to Avalonia!
+        Title="UI_Test_Avalonia"
+        Background="{DynamicResource SystemRegionBrush}">
+    
+    <SplitView IsPaneOpen="True"
+               DisplayMode="Inline"
+               OpenPaneLength="200"
+               PaneBackground="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+        <SplitView.Pane>
+            <!-- Sidebar Content -->
+            <StackPanel Spacing="10" Margin="10">
+                <TextBlock Text="Menu" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
+                <Button Content="Home" HorizontalAlignment="Stretch" Click="HomeButton_Click"/>
+                <Button Content="Live Data" HorizontalAlignment="Stretch" Click="LiveDataButton_Click"/>
+                <Button Content="Configure WiFi" HorizontalAlignment="Stretch" Click="ConfigureWifiButton_Click"/>
+                <Button Content="About" HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </SplitView.Pane>
+
+        <SplitView.Content>
+            <!-- Main View Content - Replaced dynamically -->
+            <ContentControl x:Name="MainContentArea">
+                <local:HomeView/>
+            </ContentControl>
+        </SplitView.Content>
+    </SplitView>
+    
 </Window>

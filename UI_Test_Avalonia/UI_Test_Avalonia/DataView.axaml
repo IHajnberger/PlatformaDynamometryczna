@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:scott="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="UI_Test_Avalonia.DataView">
+    <Grid Margin="10">
+        <!-- Main Content Panel using Grid instead of StackPanel -->
+        <Grid x:Name="MainPanel" RowDefinitions="Auto, Auto, *">
+            
+            <TextBlock Grid.Row="0" Text="Live Weight Data" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+            
+            <TextBlock Grid.Row="1" x:Name="StatusText" Text="Status: Initializing..." Foreground="Gray" Margin="0,0,0,10"/>
+            
+            <!-- The graph is now locked in Row 2, forced to stretch perfectly without resizing the window -->
+            <scott:AvaPlot Grid.Row="2" x:Name="WeightPlot" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            
+        </Grid>
+
+        <!-- Error Display Panel -->
+        <TextBlock x:Name="ErrorText" 
+                   IsVisible="False" 
+                   TextWrapping="Wrap"
+                   Foreground="Red"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+    </Grid>
+</UserControl>

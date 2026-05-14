@@ -52,9 +52,15 @@ void hx711_init(gpio_num_t dout, gpio_num_t sck)
 
 int32_t hx711_read(gpio_num_t dout, gpio_num_t sck)
 {
+    int timeout = 1000; // 1 second timeout
     while (gpio_get_level(dout))
     {
         vTaskDelay(1 / portTICK_PERIOD_MS);
+        timeout--;
+        if (timeout <= 0) {
+            ESP_LOGE(TAG, "HX711 timeout on pin %d! Sensor disconnected?", dout);
+            return 0; // Return 0 to prevent hanging
+        }
     }
     int32_t count = 0;
     for (int i = 0; i < 24; i++)
@@ -211,6 +217,7 @@ void udp_broadcast_task(void *pvParameters)
     ESP_LOGI(TAG, "Starting UDP broadcast of weight data...");
     while (1)
     {
+
         int32_t odczyt1 = hx711_read(DOUT1_PIN, SCK1_PIN);
         int32_t odczyt2 = hx711_read(DOUT2_PIN, SCK2_PIN);
 
@@ -232,6 +239,7 @@ void udp_broadcast_task(void *pvParameters)
 }
 
 // --- Task to handle serial configuration
+// --- Task to handle serial configuration
 void serial_config_task(void *pvParameters) {
     char buffer[256];
     int idx = 0;
@@ -247,6 +255,7 @@ void serial_config_task(void *pvParameters) {
 
                     if (strncmp(buffer, "PING", 4) == 0) {
                         printf("START_APLIKACJA\n");
+                        fflush(stdout);
                     } else if (strncmp(buffer, "WIFI_CONFIG:", 12) == 0) {
                         char *ssid = strtok(buffer + 12, ":");
                         char *password = strtok(NULL, ":");
@@ -256,6 +265,7 @@ void serial_config_task(void *pvParameters) {
                             save_wifi_creds(ssid, password);
                             
                             printf("WIFI_CONFIRMED\n");
+                            fflush(stdout);
                             vTaskDelay(1000 / portTICK_PERIOD_MS);
                             esp_restart();
                         }
@@ -270,6 +280,7 @@ void serial_config_task(void *pvParameters) {
         }
     }
 }
+
 void app_main(void)
 {
     // Initialize NVS
@@ -281,9 +292,8 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    // Signal to PC that we are ready for configuration
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // Give USB time to initialize
-    printf("START_APLIKACJA\n");
+    // Give USB time to initialize, but DO NOT send the handshake here.
+    vTaskDelay(1000 / portTICK_PERIOD_MS); 
 
     // Initialize HX711 sensors
     hx711_init(DOUT1_PIN, SCK1_PIN);
@@ -321,13 +331,13 @@ void app_main(void)
         {
             // Fallback to config mode if connection fails
             ESP_LOGW(TAG, "WiFi connection failed. Falling back to configuration mode.");
-            xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
         }
     }
-    else
+    else    
     {
         ESP_LOGI(TAG, "No WiFi credentials found. Starting configuration mode.");
-    }
-    xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
+    }   
 
+    // ALWAYS start the serial config task so it responds to PING and stays configurable!
+    xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
 }

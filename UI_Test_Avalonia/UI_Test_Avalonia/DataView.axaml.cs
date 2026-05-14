@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using Avalonia.Controls;
@@ -16,24 +17,20 @@ public partial class DataView : UserControl, IDisposable
 {
     private const int UdpPort = 12345;
 
-    // --- Thread-safe buffering and rendering ---
-    private readonly object _bufferLock = new();
+    // --- Thread-safe buffering and rendering ---z
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     private volatile bool _isListening = true;
 
+    // Use a ConcurrentQueue to prevent data loss if packets arrive faster than 20ms
+    private readonly ConcurrentQueue<(double Weight1, double Weight2)> _dataQueue = new();
     private DateTime _lastPacketTime = DateTime.MinValue;
-    private double _lastWeight1;
-    private double _lastWeight2;
     private readonly Thread? _listenThread;
-
-    private bool _newDataAvailable;
 
     private readonly DataStreamer? _streamer1;
     private readonly DataStreamer? _streamer2;
     private readonly UdpClient? _udpClient;
 
-    // Added a counter to prevent console spam while still proving it works
     private int _debugPacketCount = 0; 
 
     public DataView()
@@ -51,6 +48,7 @@ public partial class DataView : UserControl, IDisposable
         {
             Debug.WriteLine("[UI] DataView Attached to Window - Starting Render Timer.");
             _renderTimer.Start();
+            WeightPlot.Refresh(); // Force initial render when attached
         };
         DetachedFromVisualTree += (_, _) => 
         {
@@ -81,6 +79,11 @@ public partial class DataView : UserControl, IDisposable
             _listenThread.Start();
 
             StatusText.Text = "Status: Listening for UDP packets. Please connect the device...";
+            // We removed _renderTimer.Start() here so it only ticks when visible.
+            
+            // Render at least once so it's not blank
+            WeightPlot.Refresh();
+            
             Debug.WriteLine("[UI] Initialization complete. Waiting for data.");
         }
         catch (SocketException ex)
@@ -132,22 +135,20 @@ public partial class DataView : UserControl, IDisposable
                 var data = _udpClient.Receive(ref remoteEp);
                 var message = Encoding.ASCII.GetString(data);
 
-                // DEBUG: Print the raw message every 50 packets to avoid lagging the console,
-                // OR print it immediately if it's the very first packet.
+                // Add aggressive debugging to figure out why parsing might be failing
                 _debugPacketCount++;
-                if (_debugPacketCount == 1 || _debugPacketCount % 50 == 0)
-                {
-                    Debug.WriteLine($"[Network] RAW UDP Packet received: '{message}' (From: {remoteEp})");
-                }
 
                 var parts = message.Split(',');
                 
-                // Add aggressive debugging to figure out why parsing might be failing
                 if (parts.Length != 3)
                 {
-                    Debug.WriteLine($"[Parse Error] Packet rejected! Expected 3 parts, got {parts.Length}. Raw string: '{message}'");
+                    // If it doesn't have 3 parts, it might be a standard log message from the ESP rather than sensor data.
+                    Debug.WriteLine($"[ESP LOG] {message} (From: {remoteEp})");
                     continue; // Skip to next packet
                 }
+
+                // Print every packet to debug since the ESP is currently sending at 1 Hz
+                Debug.WriteLine($"[Network] RAW DATA UDP Packet: '{message}'");
 
                 bool parsedW1 = double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var weight1);
                 bool parsedW2 = double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var weight2);
@@ -159,13 +160,8 @@ public partial class DataView : UserControl, IDisposable
                 }
 
                 // If we get here, the packet was perfect.
-                lock (_bufferLock)
-                {
-                    _lastWeight1 = weight1;
-                    _lastWeight2 = weight2;
-                    _newDataAvailable = true;
-                    _lastPacketTime = DateTime.Now;
-                }
+                _dataQueue.Enqueue((weight1, weight2));
+                _lastPacketTime = DateTime.Now;
             }
         }
         catch (SocketException)
@@ -182,25 +178,13 @@ public partial class DataView : UserControl, IDisposable
 
     private void RenderTimer_Tick(object? sender, EventArgs e)
     {
-        double currentWeight1 = 0;
-        double currentWeight2 = 0;
-        var shouldRender = false;
-
         var wasConnected = _isConnected;
         var isCurrentlyConnected = false;
-
-        lock (_bufferLock)
-        {
-            if (_newDataAvailable)
-            {
-                currentWeight1 = _lastWeight1;
-                currentWeight2 = _lastWeight2;
-                _newDataAvailable = false;
-                shouldRender = true;
-            }
-
-            isCurrentlyConnected = (DateTime.Now - _lastPacketTime).TotalMilliseconds < 1000;
-        }
+        
+        // Calculate if we've received data within the last second
+        isCurrentlyConnected = (DateTime.Now - _lastPacketTime).TotalMilliseconds < 1000;
+        
+        bool newDataRendered = false;
 
         if (isCurrentlyConnected != wasConnected)
         {
@@ -219,13 +203,22 @@ public partial class DataView : UserControl, IDisposable
             }
         }
 
-        if (shouldRender && _streamer1 != null && _streamer2 != null)
+        // Empty the queue completely every tick, plotting every single data point received
+        if (_streamer1 != null && _streamer2 != null)
         {
             try
             {
-                _streamer1.Add(currentWeight1);
-                _streamer2.Add(currentWeight2);
-                WeightPlot.Refresh();
+                while (_dataQueue.TryDequeue(out var data))
+                {
+                    _streamer1.Add(data.Weight1);
+                    _streamer2.Add(data.Weight2);
+                    newDataRendered = true;
+                }
+                
+                if (newDataRendered)
+                {
+                    WeightPlot.Refresh();
+                }
             }
             catch (Exception ex)
             {
@@ -233,4 +226,4 @@ public partial class DataView : UserControl, IDisposable
             }
         }
     }
-} 
+}

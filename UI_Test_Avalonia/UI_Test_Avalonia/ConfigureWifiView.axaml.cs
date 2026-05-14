@@ -26,6 +26,8 @@ public partial class ConfigureWifiView : UserControl
         StatusTextBlock.Foreground = Brushes.Orange;
         InputPanel.IsEnabled = false;
 
+        Debug.WriteLine("[C#] Scan button clicked. Looking for ESP32...");
+
         // Clean up any old open ports just in case
         if (_espPort != null && _espPort.IsOpen)
         {
@@ -56,23 +58,31 @@ public partial class ConfigureWifiView : UserControl
         foreach (var portName in ports)
             try
             {
+                Debug.WriteLine($"[C#] Probing {portName} at 115200 baud...");
                 // REMOVED 'using' block. We want to keep it alive if it succeeds!
                 var sp = new SerialPort(portName, 115200) { WriteTimeout = 1000, ReadTimeout = 1000 };
-                sp.DtrEnable = false;
-                sp.RtsEnable = false;
+                sp.DtrEnable = true;
+                sp.RtsEnable = true;
                 sp.Open();
 
                 Thread.Sleep(500); // Give Linux a moment to settle
                 sp.DiscardInBuffer();
                 sp.DiscardOutBuffer();
 
-                sp.Write("PING\n");
-
-                var timeout = DateTime.Now.AddSeconds(2.0);
+                var timeout = DateTime.Now.AddSeconds(3.0);
                 var buffer = "";
+                var lastPingTime = DateTime.MinValue;
 
                 while (DateTime.Now < timeout)
                 {
+                    // Send PING periodically. The ESP32 might be booting or missed the first byte.
+                    if ((DateTime.Now - lastPingTime).TotalMilliseconds > 500)
+                    {
+                        Debug.WriteLine($"[C#] Sending 'PING' to {portName}.");
+                        sp.Write("\nPING\n"); // Prefix with \n to flush any half-read garbage on the ESP side
+                        lastPingTime = DateTime.Now;
+                    }
+
                     if (sp.IsOpen && sp.BytesToRead > 0)
                     {
                         buffer += sp.ReadExisting();
@@ -87,6 +97,7 @@ public partial class ConfigureWifiView : UserControl
                 }
 
                 // If we get here, it wasn't the ESP32. Close it and try the next one.
+                Debug.WriteLine($"[C#] Handshake failed on {portName}. Closing port.");
                 sp.Close();
                 sp.Dispose();
             }
@@ -100,6 +111,8 @@ public partial class ConfigureWifiView : UserControl
 
     private void ChangeWifiButton_Click(object? sender, RoutedEventArgs e)
     {
+        Debug.WriteLine("[C#] 'Change WiFi' button clicked.");
+
         // 1. Re-enable the UI inputs
         InputPanel.IsEnabled = true;
 
@@ -117,10 +130,12 @@ public partial class ConfigureWifiView : UserControl
 
     private async void ConnectButton_Click(object? sender, RoutedEventArgs e)
     {
+        Debug.WriteLine("[C#] 'Connect' button clicked.");
         if (_espPort == null || !_espPort.IsOpen)
         {
             StatusTextBlock.Text = "Status: Port is closed. Please scan again.";
             StatusTextBlock.Foreground = Brushes.Red;
+            Debug.WriteLine("[C#] Port check failed. _espPort is null or not open.");
             return;
         }
 
@@ -131,6 +146,7 @@ public partial class ConfigureWifiView : UserControl
         {
             StatusTextBlock.Text = "Status: SSID cannot be empty.";
             StatusTextBlock.Foreground = Brushes.Red;
+            Debug.WriteLine("[C#] SSID validation failed. SSID is null or whitespace.");
             return;
         }
 
@@ -141,6 +157,7 @@ public partial class ConfigureWifiView : UserControl
         {
             var isConfirmed = await Task.Run(() =>
             {
+                Debug.WriteLine("[C#] Starting background task to send credentials.");
                 _espPort.DiscardInBuffer();
                 _espPort.DiscardOutBuffer();
 
@@ -200,6 +217,7 @@ public partial class ConfigureWifiView : UserControl
                     Debug.WriteLine("[C#] No response yet, retrying transmission...");
                 }
 
+                Debug.WriteLine("[C#] Overall timeout reached while waiting for WIFI_CONFIRMED.");
                 return false;
             });
 
@@ -233,6 +251,7 @@ public partial class ConfigureWifiView : UserControl
             }
             else
             {
+                Debug.WriteLine("[C#] ESP did not confirm credentials within the timeout.");
                 Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     StatusTextBlock.Text = "Status: Timeout. ESP did not confirm.";

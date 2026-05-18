@@ -18,8 +18,18 @@ public sealed class MqttService
     private MqttServer? _mqttServer;
 
     // --- Public Data Access ---
-    public ConcurrentQueue<double> DataQueue { get; } = new();
+    
+    // We now track two sets of data for the two ESP32 scales
+    public ConcurrentQueue<double> Device1Queue { get; } = new();
+    public ConcurrentQueue<double> Device2Queue { get; } = new();
+    public ConcurrentQueue<double> AverageQueue { get; } = new();
+
+    // Track when we last heard from *any* device
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
+    
+    // Track the latest weights to compute the average
+    private double _lastWeight1 = 0;
+    private double _lastWeight2 = 0;
 
     private MqttService()
     {
@@ -56,11 +66,31 @@ public sealed class MqttService
                     try
                     {
                         using var document = JsonDocument.Parse(payload);
-                        if (document.RootElement.TryGetProperty("weight", out var weightElement))
+                        
+                        // We need to know WHICH device sent the data to plot them separately
+                        if (document.RootElement.TryGetProperty("deviceId", out var idElement) && 
+                            document.RootElement.TryGetProperty("weight", out var weightElement))
                         {
+                            var deviceId = idElement.GetString();
                             var weight = weightElement.GetDouble();
-                            DataQueue.Enqueue(weight);
+                            
                             LastPacketTime = DateTime.Now;
+
+                            // Route the data based on the device ID
+                            if (deviceId == "Left")
+                            {
+                                _lastWeight1 = weight;
+                                Device1Queue.Enqueue(weight);
+                            }
+                            else if (deviceId == "Right")
+                            {
+                                _lastWeight2 = weight;
+                                Device2Queue.Enqueue(weight);
+                            }
+                            
+                            // Calculate and queue the average
+                            var average = (_lastWeight1 + _lastWeight2) / 2.0;
+                            AverageQueue.Enqueue(average);
                         }
                     }
                     catch (Exception ex)

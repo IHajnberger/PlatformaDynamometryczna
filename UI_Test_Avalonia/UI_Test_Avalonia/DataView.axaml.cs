@@ -11,7 +11,11 @@ public partial class DataView : UserControl, IDisposable
 {
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
+    
+    // We now need three streamers for the three data lines
     private readonly DataStreamer? _streamer1;
+    private readonly DataStreamer? _streamer2;
+    private readonly DataStreamer? _streamerAvg;
 
     public DataView()
     {
@@ -43,12 +47,27 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = Brushes.Orange;
 
             WeightPlot.Plot.Clear();
+            
+            // Create and style the three streamers
             _streamer1 = WeightPlot.Plot.Add.DataStreamer(500);
             _streamer1.ManageAxisLimits = true;
+            _streamer1.LegendText = "Left Scale";
+            _streamer1.Color = ScottPlot.Colors.CornflowerBlue;
+
+            _streamer2 = WeightPlot.Plot.Add.DataStreamer(500);
+            _streamer2.ManageAxisLimits = true;
+            _streamer2.LegendText = "Right Scale";
+            _streamer2.Color = ScottPlot.Colors.OrangeRed;
+
+            _streamerAvg = WeightPlot.Plot.Add.DataStreamer(500);
+            _streamerAvg.ManageAxisLimits = true;
+            _streamerAvg.LegendText = "Average";
+            _streamerAvg.Color = ScottPlot.Colors.Gray;
+            _streamerAvg.LinePattern = ScottPlot.LinePattern.Dotted;
 
             WeightPlot.Plot.XLabel("Data Points");
             WeightPlot.Plot.YLabel("Weight (kg)");
-            WeightPlot.Plot.Title("Live Weight Data");
+            WeightPlot.Plot.Title("Live Asymmetry Data");
             
             WeightPlot.Refresh();
             
@@ -81,7 +100,6 @@ public partial class DataView : UserControl, IDisposable
     {
         var wasConnected = _isConnected;
         
-        // Access the singleton MqttService to check connection status
         bool isCurrentlyConnected = (DateTime.Now - MqttService.Instance.LastPacketTime).TotalMilliseconds < 4000;
         
         bool newDataRendered = false;
@@ -91,7 +109,7 @@ public partial class DataView : UserControl, IDisposable
             _isConnected = isCurrentlyConnected;
             if (_isConnected)
             {
-                StatusText.Text = "Status: Receiving data from ESP32 via MQTT...";
+                StatusText.Text = "Status: Receiving data from ESP32 devices...";
                 StatusText.Foreground = Brushes.Green;
             }
             else
@@ -101,14 +119,25 @@ public partial class DataView : UserControl, IDisposable
             }
         }
 
-        if (_streamer1 != null)
+        // Check all three streamers are not null
+        if (_streamer1 != null && _streamer2 != null && _streamerAvg != null)
         {
             try
             {
-                // Dequeue all data from the central service
-                while (MqttService.Instance.DataQueue.TryDequeue(out var weight))
+                // Dequeue and plot data for each device
+                while (MqttService.Instance.Device1Queue.TryDequeue(out var weight1))
                 {
-                    _streamer1.Add(weight);
+                    _streamer1.Add(weight1);
+                    newDataRendered = true;
+                }
+                while (MqttService.Instance.Device2Queue.TryDequeue(out var weight2))
+                {
+                    _streamer2.Add(weight2);
+                    newDataRendered = true;
+                }
+                while (MqttService.Instance.AverageQueue.TryDequeue(out var avg))
+                {
+                    _streamerAvg.Add(avg);
                     newDataRendered = true;
                 }
                 

@@ -40,7 +40,7 @@ static const char *TAG = "WAGI";
 static EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 
-// --- HX711 Functions (unchanged)
+// --- HX711 Functions
 void hx711_init(gpio_num_t dout, gpio_num_t sck)
 {
     gpio_reset_pin(dout);
@@ -128,7 +128,7 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
         {
             esp_wifi_connect();
             s_retry_num++;
-            ESP_LOGI(TAG, "retrying to connect to the AP");
+            ESP_LOGI(TAG, "Retrying to connect to the AP...");
         }
         else
         {
@@ -138,7 +138,7 @@ static void event_handler(void *arg, esp_event_base_t event_base, int32_t event_
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
     {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-        ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        ESP_LOGI(TAG, "Got IP Address: " IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
@@ -173,11 +173,11 @@ void wifi_init_sta(const char *ssid, const char *password)
 
     if (bits & WIFI_CONNECTED_BIT)
     {
-        ESP_LOGI(TAG, "Connected to AP SSID:%s", ssid);
+        ESP_LOGI(TAG, "Connected successfully to AP SSID: %s", ssid);
     }
     else if (bits & WIFI_FAIL_BIT)
     {
-        ESP_LOGW(TAG, "Failed to connect to SSID:%s", ssid);
+        ESP_LOGW(TAG, "Failed to connect to SSID: %s", ssid);
     }
     else
     {
@@ -217,7 +217,6 @@ void udp_broadcast_task(void *pvParameters)
     ESP_LOGI(TAG, "Starting UDP broadcast of weight data...");
     while (1)
     {
-
         int32_t odczyt1 = hx711_read(DOUT1_PIN, SCK1_PIN);
         int32_t odczyt2 = hx711_read(DOUT2_PIN, SCK2_PIN);
 
@@ -227,11 +226,14 @@ void udp_broadcast_task(void *pvParameters)
 
         // Format: timestamp,weight1,weight2
         snprintf(payload, sizeof(payload), "%lld,%.3f,%.3f", timestamp_ms, waga1_kg, waga2_kg);
+        
+        // Output exactly what is happening to the Serial Monitor
+        ESP_LOGI(TAG, "W1: %.3f kg | W2: %.3f kg | UDP Payload: %s", waga1_kg, waga2_kg, payload);
 
         int err = sendto(sock, payload, strlen(payload), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
         if (err < 0)
         {
-            ESP_LOGE(TAG, "Error sending data: errno %d", errno);
+            ESP_LOGE(TAG, "Error sending UDP data: errno %d", errno);
         }
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -239,11 +241,10 @@ void udp_broadcast_task(void *pvParameters)
 }
 
 // --- Task to handle serial configuration
-// --- Task to handle serial configuration
 void serial_config_task(void *pvParameters) {
     char buffer[256];
     int idx = 0;
-    ESP_LOGI(TAG, "Configuration mode active.");
+    ESP_LOGI(TAG, "Configuration mode active. Listening for Serial Commands...");
 
     while (1) {
         int c = fgetc(stdin); // Read one character at a time
@@ -251,23 +252,29 @@ void serial_config_task(void *pvParameters) {
             if (c == '\n' || c == '\r') {
                 if (idx > 0) {
                     buffer[idx] = 0;
-                    ESP_LOGI(TAG, "I heard: '%s'", buffer);
+                    ESP_LOGI(TAG, "Received Command: '%s'", buffer);
 
                     if (strncmp(buffer, "PING", 4) == 0) {
+                        // Keep pure printf for the C# app handshake (no ESP_LOG wrappers)
                         printf("START_APLIKACJA\n");
                         fflush(stdout);
                     } else if (strncmp(buffer, "WIFI_CONFIG:", 12) == 0) {
                         char *ssid = strtok(buffer + 12, ":");
                         char *password = strtok(NULL, ":");
                         if (ssid && password) {
+                            ESP_LOGI(TAG, "Saving new WiFi Credentials. SSID: %s", ssid);
                             
-                            // FIX: Actually save the credentials to NVS
+                            // Save the credentials to NVS
                             save_wifi_creds(ssid, password);
                             
+                            // Handshake back to C#
                             printf("WIFI_CONFIRMED\n");
                             fflush(stdout);
+                            
                             vTaskDelay(1000 / portTICK_PERIOD_MS);
                             esp_restart();
+                        } else {
+                            ESP_LOGE(TAG, "Invalid WIFI_CONFIG format received.");
                         }
                     }
                     idx = 0; // Reset for next command
@@ -283,6 +290,10 @@ void serial_config_task(void *pvParameters) {
 
 void app_main(void)
 {
+    // FORCE unbuffered standard I/O. 
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stdin, NULL, _IONBF, 0);
+
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -292,8 +303,12 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    // Give USB time to initialize, but DO NOT send the handshake here.
+    // Give USB time to initialize
     vTaskDelay(1000 / portTICK_PERIOD_MS); 
+
+    // ---> FIX: START SERIAL TASK IMMEDIATELY <---
+    // Now it will answer "PING" instantly, even if WiFi/Sensors are taking a long time.
+    xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
 
     // Initialize HX711 sensors
     hx711_init(DOUT1_PIN, SCK1_PIN);
@@ -329,7 +344,6 @@ void app_main(void)
         }
         else
         {
-            // Fallback to config mode if connection fails
             ESP_LOGW(TAG, "WiFi connection failed. Falling back to configuration mode.");
         }
     }
@@ -337,7 +351,4 @@ void app_main(void)
     {
         ESP_LOGI(TAG, "No WiFi credentials found. Starting configuration mode.");
     }   
-
-    // ALWAYS start the serial config task so it responds to PING and stays configurable!
-    xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
 }

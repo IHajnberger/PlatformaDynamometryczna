@@ -61,11 +61,11 @@ public partial class ConfigureWifiView : UserControl
                 Debug.WriteLine($"[C#] Probing {portName} at 115200 baud...");
                 // REMOVED 'using' block. We want to keep it alive if it succeeds!
                 var sp = new SerialPort(portName, 115200) { WriteTimeout = 1000, ReadTimeout = 1000 };
-                sp.DtrEnable = true;
-                sp.RtsEnable = true;
+                sp.DtrEnable = false;
+                sp.RtsEnable = false;
                 sp.Open();
 
-                Thread.Sleep(500); // Give Linux a moment to settle
+                Thread.Sleep(1500); // Give Linux a moment to settle
                 sp.DiscardInBuffer();
                 sp.DiscardOutBuffer();
 

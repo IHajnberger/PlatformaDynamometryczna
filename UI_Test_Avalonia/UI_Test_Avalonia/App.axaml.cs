@@ -2,23 +2,31 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace UI_Test_Avalonia
+namespace UI_Test_Avalonia;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    public override void Initialize()
     {
-        public override void Initialize()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            // Start the MQTT Service as soon as the application framework is ready
+            await MqttService.Instance.StartAsync();
+            
+            desktop.MainWindow = new MainWindow();
+
+            // Ensure the MQTT service is stopped gracefully on exit
+            desktop.ShutdownRequested += async (sender, e) => 
             {
-                desktop.MainWindow = new MainWindow();
-            }
-
-            base.OnFrameworkInitializationCompleted();
+                await MqttService.Instance.StopAsync();
+            };
         }
+
+        base.OnFrameworkInitializationCompleted();
     }
 }

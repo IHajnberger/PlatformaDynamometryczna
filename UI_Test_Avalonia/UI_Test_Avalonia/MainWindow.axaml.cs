@@ -19,7 +19,7 @@ public partial class MainWindow : Window
         _homeView = new HomeView();
         _dataView = new DataView();
         _configureWifiView = new ConfigureWifiView();
-
+        
         // Set the initial content
         MainContentArea.Content = _homeView;
     }

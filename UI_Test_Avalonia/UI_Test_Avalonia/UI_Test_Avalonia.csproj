@@ -23,5 +23,8 @@
 
     <!-- Standard Serial Ports -->
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    
+    <!-- MQTT -->
+    <PackageReference Include="MQTTnet" Version="4.3.3.952" />
   </ItemGroup>
 </Project>

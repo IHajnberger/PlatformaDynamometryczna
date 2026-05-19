@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using ScottPlot;
 using ScottPlot.Plottables;
 
 namespace UI_Test_Avalonia;
@@ -12,10 +13,10 @@ public partial class DataView : UserControl, IDisposable
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     
-    // We now need three streamers for the three data lines
-    private readonly DataStreamer? _streamer1;
-    private readonly DataStreamer? _streamer2;
-    private readonly DataStreamer? _streamerAvg;
+    // Use DataLogger for (X, Y) pairs
+    private readonly DataLogger? _logger1;
+    private readonly DataLogger? _logger2;
+    private readonly DataLogger? _loggerAvg;
 
     public DataView()
     {
@@ -48,26 +49,25 @@ public partial class DataView : UserControl, IDisposable
 
             WeightPlot.Plot.Clear();
             
-            // Create and style the three streamers
-            _streamer1 = WeightPlot.Plot.Add.DataStreamer(500);
-            _streamer1.ManageAxisLimits = true;
-            _streamer1.LegendText = "Left Scale";
-            _streamer1.Color = ScottPlot.Colors.CornflowerBlue;
+            // Create and style the three loggers
+            _logger1 = WeightPlot.Plot.Add.DataLogger();
+            _logger1.LegendText = "Left Scale";
+            _logger1.Color = ScottPlot.Colors.CornflowerBlue;
 
-            _streamer2 = WeightPlot.Plot.Add.DataStreamer(500);
-            _streamer2.ManageAxisLimits = true;
-            _streamer2.LegendText = "Right Scale";
-            _streamer2.Color = ScottPlot.Colors.OrangeRed;
+            _logger2 = WeightPlot.Plot.Add.DataLogger();
+            _logger2.LegendText = "Right Scale";
+            _logger2.Color = ScottPlot.Colors.OrangeRed;
 
-            _streamerAvg = WeightPlot.Plot.Add.DataStreamer(500);
-            _streamerAvg.ManageAxisLimits = true;
-            _streamerAvg.LegendText = "Average";
-            _streamerAvg.Color = ScottPlot.Colors.Gray;
-            _streamerAvg.LinePattern = ScottPlot.LinePattern.Dotted;
+            _loggerAvg = WeightPlot.Plot.Add.DataLogger();
+            _loggerAvg.LegendText = "Average";
+            _loggerAvg.Color = ScottPlot.Colors.Gray;
+            _loggerAvg.LineStyle.Pattern = LinePattern.Dotted;
 
-            WeightPlot.Plot.XLabel("Data Points");
+            // Configure the X-axis to display time
+            WeightPlot.Plot.Axes.DateTimeTicksBottom();            
             WeightPlot.Plot.YLabel("Weight (kg)");
             WeightPlot.Plot.Title("Live Asymmetry Data");
+            WeightPlot.Plot.ShowLegend(Alignment.UpperLeft);
             
             WeightPlot.Refresh();
             
@@ -119,30 +119,32 @@ public partial class DataView : UserControl, IDisposable
             }
         }
 
-        // Check all three streamers are not null
-        if (_streamer1 != null && _streamer2 != null && _streamerAvg != null)
+        // Check all three loggers are not null
+        if (_logger1 != null && _logger2 != null && _loggerAvg != null)
         {
             try
             {
-                // Dequeue and plot data for each device
-                while (MqttService.Instance.Device1Queue.TryDequeue(out var weight1))
+                // Dequeue and plot data for each device using the timestamp
+                while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
                 {
-                    _streamer1.Add(weight1);
+                    _logger1.Add(data.Timestamp.ToOADate(), data.Weight);
                     newDataRendered = true;
                 }
-                while (MqttService.Instance.Device2Queue.TryDequeue(out var weight2))
+                while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
                 {
-                    _streamer2.Add(weight2);
+                    _logger2.Add(data.Timestamp.ToOADate(), data.Weight);
                     newDataRendered = true;
                 }
-                while (MqttService.Instance.AverageQueue.TryDequeue(out var avg))
+                while (MqttService.Instance.AverageQueue.TryDequeue(out var data))
                 {
-                    _streamerAvg.Add(avg);
+                    _loggerAvg.Add(data.Timestamp.ToOADate(), data.Weight);
                     newDataRendered = true;
                 }
                 
                 if (newDataRendered)
                 {
+                    // Automatically adjust the axis limits to fit the new data
+                    WeightPlot.Plot.Axes.AutoScale();
                     WeightPlot.Refresh();
                 }
             }

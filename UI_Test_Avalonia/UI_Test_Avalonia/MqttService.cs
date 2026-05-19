@@ -19,10 +19,10 @@ public sealed class MqttService
 
     // --- Public Data Access ---
     
-    // We now track two sets of data for the two ESP32 scales
-    public ConcurrentQueue<double> Device1Queue { get; } = new();
-    public ConcurrentQueue<double> Device2Queue { get; } = new();
-    public ConcurrentQueue<double> AverageQueue { get; } = new();
+    // We now track two sets of data for the two ESP32 scales, along with their timestamps
+    public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device1Queue { get; } = new();
+    public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device2Queue { get; } = new();
+    public ConcurrentQueue<(double Weight, DateTime Timestamp)> AverageQueue { get; } = new();
 
     // Track when we last heard from *any* device
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
@@ -31,6 +31,8 @@ public sealed class MqttService
     private double _lastWeight1 = 0;
     private double _lastWeight2 = 0;
 
+    private string deviceOneId = "Left";
+    private string deviceTwoId = "Right";
     private MqttService()
     {
         // Private constructor for singleton
@@ -67,30 +69,32 @@ public sealed class MqttService
                     {
                         using var document = JsonDocument.Parse(payload);
                         
-                        // We need to know WHICH device sent the data to plot them separately
                         if (document.RootElement.TryGetProperty("deviceId", out var idElement) && 
-                            document.RootElement.TryGetProperty("weight", out var weightElement))
+                            document.RootElement.TryGetProperty("weight", out var weightElement) &&
+                            document.RootElement.TryGetProperty("timestamp", out var timestampElement))
                         {
                             var deviceId = idElement.GetString();
                             var weight = weightElement.GetDouble();
+                            // ESP32 sends epoch time in seconds, convert to DateTime
+                            var timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampElement.GetInt64()).DateTime.ToLocalTime();
                             
                             LastPacketTime = DateTime.Now;
 
                             // Route the data based on the device ID
-                            if (deviceId == "Left")
+                            if (deviceId == deviceOneId)
                             {
                                 _lastWeight1 = weight;
-                                Device1Queue.Enqueue(weight);
+                                Device1Queue.Enqueue((weight, timestamp));
                             }
-                            else if (deviceId == "Right")
+                            else if (deviceId == deviceTwoId)
                             {
                                 _lastWeight2 = weight;
-                                Device2Queue.Enqueue(weight);
+                                Device2Queue.Enqueue((weight, timestamp));
                             }
                             
-                            // Calculate and queue the average
+                            // Calculate and queue the average, using the current time as the timestamp for the average
                             var average = (_lastWeight1 + _lastWeight2) / 2.0;
-                            AverageQueue.Enqueue(average);
+                            AverageQueue.Enqueue((average, DateTime.Now));
                         }
                     }
                     catch (Exception ex)

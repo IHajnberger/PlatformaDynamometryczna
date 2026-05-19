@@ -47,7 +47,7 @@ void setup() {
 
   // 3. Attempt WiFi Connection
   if (ssid.length() > 0) {
-    Serial.printf("\n[ESP] Connecting to SSID: %s\n", ssid.c_str());
+    Serial.printf("\n[ESP-%s] Connecting to SSID: %s\n", deviceId, ssid.c_str());
     WiFi.begin(ssid.c_str(), password.c_str());
     
     int attempts = 0;
@@ -58,24 +58,24 @@ void setup() {
     }
 
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("\n[ESP] WiFi Connected!");
-      Serial.print("[ESP] IP Address: ");
+      Serial.printf("\n[ESP-%s] WiFi Connected!\n", deviceId);
+      Serial.printf("[ESP-%s] IP Address: ", deviceId);
       Serial.println(WiFi.localIP());
       
       sync_time();
       
       // Only set up MQTT if we actually have an IP saved
       if (mqtt_server.length() > 0) {
-        Serial.printf("[ESP] Setting MQTT Broker to: %s\n", mqtt_server.c_str());
+        Serial.printf("[ESP-%s] Setting MQTT Broker to: %s\n", deviceId, mqtt_server.c_str());
         client.setServer(mqtt_server.c_str(), 1883);
       } else {
-        Serial.println("[ESP] No MQTT Broker IP found. Waiting for configuration.");
+        Serial.printf("[ESP-%s] No MQTT Broker IP found. Waiting for configuration.\n", deviceId);
       }
     } else {
-      Serial.println("\n[ESP] WiFi Connection Failed. Waiting for new configuration.");
+      Serial.printf("\n[ESP-%s] WiFi Connection Failed. Waiting for new configuration.\n", deviceId);
     }
   } else {
-    Serial.println("\n[ESP] No WiFi credentials found. Waiting for configuration.");
+    Serial.printf("\n[ESP-%s] No WiFi credentials found. Waiting for configuration.\n", deviceId);
   }
 }
 
@@ -104,7 +104,7 @@ void serial_config_task(void *pvParameters) {
               String newSsid = inputBuffer.substring(firstColon + 1, secondColon);
               String newPass = inputBuffer.substring(secondColon + 1);
 
-              Serial.printf("[ESP] Testing new WiFi Config... SSID: %s\n", newSsid.c_str());
+            Serial.printf("[ESP-%s] Testing new WiFi Config... SSID: %s\n", deviceId, newSsid.c_str());
 
               if (testWifiConnection(newSsid, newPass)) {
                 // Connection successful! Save credentials
@@ -113,11 +113,11 @@ void serial_config_task(void *pvParameters) {
                 preferences.putString("password", newPass);
                 preferences.end();
 
-                Serial.println("[ESP] WIFI_CONFIRMED");
+              Serial.printf("[ESP-%s] WIFI_CONFIRMED\n", deviceId);
                 // DO NOT RESTART HERE! Wait for MQTT config.
               } else {
                 // Connection failed
-                Serial.println("[ESP] WIFI_FAILED");
+              Serial.printf("[ESP-%s] WIFI_FAILED\n", deviceId);
               }
             }
           }
@@ -166,7 +166,7 @@ bool testWifiConnection(String testSsid, String testPass) {
   WiFi.disconnect();
   delay(100);
 
-  Serial.println("[ESP] Attempting to connect to new WiFi...");
+  Serial.printf("[ESP-%s] Attempting to connect to new WiFi...\n", deviceId);
   WiFi.begin(testSsid.c_str(), testPass.c_str());
 
   int attempts = 0;
@@ -183,13 +183,13 @@ bool testWifiConnection(String testSsid, String testPass) {
 
 void sync_time() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  Serial.print("[ESP] Waiting for NTP time sync...");
+  Serial.printf("[ESP-%s] Waiting for NTP time sync...", deviceId);
   struct tm timeinfo;
   while (!getLocalTime(&timeinfo)) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\n[ESP] Time Synced Successfully!");
+  Serial.printf("\n[ESP-%s] Time Synced Successfully!\n", deviceId);
 }
 
 unsigned long get_epoch_time() {
@@ -206,15 +206,13 @@ void reconnect() {
   // Safety guard: Do not attempt connection without a broker IP
   if (mqtt_server.length() == 0) return;
 
-  Serial.print("[ESP] Attempting MQTT connection...");
+  Serial.printf("[ESP-%s] Attempting MQTT connection...", deviceId);
   String clientId = String(deviceId) + "-" + String(random(0xffff), HEX);
   
   if (client.connect(clientId.c_str())) {
-    Serial.println("[ESP] Connected to .NET Broker!");
+    Serial.printf("[ESP-%s] Connected to .NET Broker!\n", deviceId);
   } else {
-    Serial.print("[ESP] Failed, rc=");
-    Serial.print(client.state());
-    Serial.println(" will retry in 5 seconds");
+    Serial.printf("[ESP-%s] Failed, rc=%d will retry in 5 seconds\n", deviceId, client.state());
   }
 }
 
@@ -237,7 +235,7 @@ void loop() {
 
         // Generate dummy data
         float randomWeight = 10.0 + (random(0, 20000) / 100.0); 
-        Serial.printf("[ESP] Generated Weight: %.2f kg\n", randomWeight);
+        Serial.printf("[ESP-%s] Generated Weight: %.2f kg\n", deviceId, randomWeight);
 
           // Format and print timestamp with milliseconds for serial output
           struct tm timeinfo;
@@ -247,7 +245,7 @@ void loop() {
           char timeStringBuff[50];
           strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
           long milliseconds = tv.tv_usec / 1000;
-          Serial.printf("[ESP] Timestamp: %s.%03ld\n", timeStringBuff, milliseconds);
+          Serial.printf("[ESP-%s] Timestamp: %s.%03ld\n", deviceId, timeStringBuff, milliseconds);
 
         unsigned long timestamp = get_epoch_time();
 
@@ -260,8 +258,7 @@ void loop() {
         char jsonBuffer[256];
         serializeJson(doc, jsonBuffer);
         
-        Serial.print("[ESP] Publishing: ");
-        Serial.println(jsonBuffer);
+        Serial.printf("[ESP-%s] Publishing: %s\n", deviceId, jsonBuffer);
         client.publish(publish_topic, jsonBuffer);
       }
     }

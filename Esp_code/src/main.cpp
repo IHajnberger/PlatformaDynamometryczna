@@ -23,7 +23,7 @@ unsigned long lastReconnectAttempt = 0;
 
 // UNIQUE IDENTIFIER FOR THIS SPECIFIC ESP32
 // Change this to "Right"/"Left" before flashing your second board!
-const char* deviceId = "Right";
+const char* deviceId = "Left";
 
 // --- Function Prototypes ---
 void sync_time();
@@ -236,8 +236,19 @@ void loop() {
         lastMsg = now;
 
         // Generate dummy data
-        float randomWeight = 10.0 + (random(0, 4000) / 100.0); 
+        float randomWeight = 10.0 + (random(0, 20000) / 100.0); 
         Serial.printf("[ESP] Generated Weight: %.2f kg\n", randomWeight);
+
+          // Format and print timestamp with milliseconds for serial output
+          struct tm timeinfo;
+          struct timeval tv;
+          gettimeofday(&tv, NULL);
+          localtime_r(&tv.tv_sec, &timeinfo);
+          char timeStringBuff[50];
+          strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+          long milliseconds = tv.tv_usec / 1000;
+          Serial.printf("[ESP] Timestamp: %s.%03ld\n", timeStringBuff, milliseconds);
+
         unsigned long timestamp = get_epoch_time();
 
         // Build JSON payload

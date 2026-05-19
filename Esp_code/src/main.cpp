@@ -22,8 +22,8 @@ unsigned long lastMsg = 0;
 unsigned long lastReconnectAttempt = 0;
 
 // UNIQUE IDENTIFIER FOR THIS SPECIFIC ESP32
-// Change this to "Right" before flashing your second board!
-const char* deviceId = "Left";
+// Change this to "Right"/"Left" before flashing your second board!
+const char* deviceId = "Right";
 
 // --- Function Prototypes ---
 void sync_time();

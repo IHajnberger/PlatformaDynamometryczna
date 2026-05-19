@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
@@ -15,8 +16,8 @@ namespace UI_Test_Avalonia;
 
 public partial class ConfigureWifiView : UserControl
 {
-    private SerialPort? _espPort;
-    private CancellationTokenSource? _debugReaderCts;
+    // Now we store a list of all found ESP ports
+    private readonly List<SerialPort> _espPorts = new();
 
     public ConfigureWifiView()
     {
@@ -24,51 +25,57 @@ public partial class ConfigureWifiView : UserControl
         
         DetachedFromVisualTree += (s, e) => 
         {
-            _debugReaderCts?.Cancel();
-            _espPort?.Close();
+            foreach (var port in _espPorts)
+            {
+                port.Close();
+                port.Dispose();
+            }
+            _espPorts.Clear();
         };
     }
 
     private async void ScanButton_Click(object? sender, RoutedEventArgs e)
     {
-        StatusTextBlock.Text = "Status: Scanning ports...";
+        StatusTextBlock.Text = "Status: Scanning all ports for ESP devices...";
         StatusTextBlock.Foreground = Brushes.Orange;
         InputPanel.IsEnabled = false;
 
-        _debugReaderCts?.Cancel();
-        if (_espPort != null && _espPort.IsOpen)
+        // Clean up any old ports
+        foreach (var port in _espPorts)
         {
-            _espPort.Close();
-            _espPort.Dispose();
+            port.Close();
+            port.Dispose();
         }
+        _espPorts.Clear();
 
-        _espPort = await Task.Run(ScanForEsp);
+        var foundPorts = await Task.Run(ScanForAllEsps);
+        _espPorts.AddRange(foundPorts);
 
-        if (_espPort != null)
+        if (_espPorts.Count > 0)
         {
-            StatusTextBlock.Text = $"Status: ESP confirmed on {_espPort.PortName}. Ready.";
+            var portNames = string.Join(", ", _espPorts.Select(p => p.PortName));
+            StatusTextBlock.Text = $"Status: Found {_espPorts.Count} ESP(s) on {portNames}. Ready to configure.";
             StatusTextBlock.Foreground = Brushes.Green;
             InputPanel.IsEnabled = true;
             
             // Auto-fill the IP address
             MqttIpTextBox.Text = GetLocalIPAddress();
-            
-            _debugReaderCts = new CancellationTokenSource();
-            _ = Task.Run(() => ReadSerialData(_debugReaderCts.Token));
         }
         else
         {
-            StatusTextBlock.Text = "Status: ESP not found. Try again.";
+            StatusTextBlock.Text = "Status: No ESP devices found. Try again.";
             StatusTextBlock.Foreground = Brushes.Red;
         }
     }
 
-    private SerialPort? ScanForEsp()
+    private List<SerialPort> ScanForAllEsps()
     {
-        string[] ports = SerialPort.GetPortNames();
-        Debug.WriteLine($"\n[C#] Found ports: {string.Join(", ", ports)}");
+        var foundPorts = new List<SerialPort>();
+        string[] portNames = SerialPort.GetPortNames();
+        Debug.WriteLine($"\n[C#] Found system ports: {string.Join(", ", portNames)}");
 
-        foreach (var portName in ports)
+        foreach (var portName in portNames)
+        {
             try
             {
                 var sp = new SerialPort(portName, 115200) { WriteTimeout = 1000, ReadTimeout = 1000 };
@@ -97,12 +104,15 @@ public partial class ConfigureWifiView : UserControl
                         buffer += sp.ReadExisting();
                         if (buffer.Contains("START_APLIKACJA"))
                         {
-                            Debug.WriteLine($"[C#] Handshake successful on {portName}");
-                            return sp;
+                            Debug.WriteLine($"[C#] Handshake successful on {portName}. Adding to list.");
+                            foundPorts.Add(sp);
+                            goto NextPort; // Exit the inner while loop and move to the next port
                         }
                     }
                     Thread.Sleep(50);
                 }
+                
+                // If we get here, it wasn't an ESP. Close it.
                 sp.Close();
                 sp.Dispose();
             }
@@ -110,43 +120,26 @@ public partial class ConfigureWifiView : UserControl
             {
                 Debug.WriteLine($"[C#] Error probing {portName}: {ex.Message}");
             }
-
-        return null;
-    }
-    
-    private async Task ReadSerialData(CancellationToken token)
-    {
-        Debug.WriteLine($"[Debug Reader] Starting background reader for {_espPort?.PortName}.");
-        while (!token.IsCancellationRequested && _espPort != null && _espPort.IsOpen)
-        {
-            try
-            {
-                if (_espPort.BytesToRead > 0)
-                {
-                    var data = _espPort.ReadExisting();
-                    Debug.Write($"[ESP32] {data}");
-                }
-            }
-            catch (Exception) { break; }
-            await Task.Delay(50, token);
+            
+            NextPort:; // Label to jump to for the goto statement
         }
-        Debug.WriteLine("[Debug Reader] Background reader stopped.");
+        return foundPorts;
     }
 
     private void ChangeWifiButton_Click(object? sender, RoutedEventArgs e)
     {
         InputPanel.IsEnabled = true;
         PasswordTextBox.Text = "";
-        StatusTextBlock.Text = "Status: Ready to configure new WiFi. Waking up ESP32...";
+        StatusTextBlock.Text = "Status: Ready to configure new WiFi. Waking up ESP32s...";
         StatusTextBlock.Foreground = Brushes.LightBlue;
         ScanButton_Click(null, new RoutedEventArgs());
     }
 
     private async void ConnectButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_espPort == null || !_espPort.IsOpen)
+        if (_espPorts.Count == 0)
         {
-            StatusTextBlock.Text = "Status: Port is closed. Please scan again.";
+            StatusTextBlock.Text = "Status: No ESPs found. Please scan again.";
             StatusTextBlock.Foreground = Brushes.Red;
             return;
         }
@@ -162,44 +155,48 @@ public partial class ConfigureWifiView : UserControl
             return;
         }
 
-        StatusTextBlock.Text = "Status: Sending credentials...";
+        StatusTextBlock.Text = $"Status: Configuring {_espPorts.Count} devices...";
         StatusTextBlock.Foreground = Brushes.Orange;
+        InputPanel.IsEnabled = false;
 
-        _debugReaderCts?.Cancel();
-
-        var wifiResult = await SendCommandAsync($"WIFI_CONFIG:{ssid}:{password}\n", "WIFI_CONFIRMED", "WIFI_FAILED");
+        int successCount = 0;
         
-        if (wifiResult == "SUCCESS")
-        {
-            StatusTextBlock.Text = "Status: WiFi confirmed. Sending MQTT config...";
-            var mqttResult = await SendCommandAsync($"MQTT_CONFIG:{mqttIp}\n", "MQTT_CONFIRMED", "MQTT_FAILED");
+        // Configure all found ports in parallel
+        var tasks = _espPorts.Select(port => ConfigureDeviceAsync(port, ssid, password, mqttIp));
+        var results = await Task.WhenAll(tasks);
 
-            if (mqttResult == "SUCCESS")
+        foreach (var (portName, success) in results)
+        {
+            if (success)
             {
-                StatusTextBlock.Text = "Status: Full config sent! ESP is restarting.";
-                StatusTextBlock.Foreground = Brushes.Green;
-                InputPanel.IsEnabled = false;
-                _debugReaderCts = new CancellationTokenSource();
-                _ = Task.Run(() => ReadSerialData(_debugReaderCts.Token));
+                Debug.WriteLine($"[C#] Successfully configured {portName}.");
+                successCount++;
             }
             else
             {
-                StatusTextBlock.Text = $"Status: MQTT Config Failed ({mqttResult})";
-                StatusTextBlock.Foreground = Brushes.Red;
+                Debug.WriteLine($"[C#] FAILED to configure {portName}.");
             }
         }
-        else
-        {
-            StatusTextBlock.Text = $"Status: WiFi Connection Failed ({wifiResult})";
-            StatusTextBlock.Foreground = Brushes.Red;
-            _debugReaderCts = new CancellationTokenSource();
-            _ = Task.Run(() => ReadSerialData(_debugReaderCts.Token));
-        }
+
+        StatusTextBlock.Text = $"Configuration complete. Successfully configured {successCount} out of {_espPorts.Count} devices.";
+        StatusTextBlock.Foreground = successCount == _espPorts.Count ? Brushes.Green : Brushes.OrangeRed;
     }
 
-    private async Task<string> SendCommandAsync(string command, string successResponse, string failureResponse, int timeoutSeconds = 15)
+    private async Task<(string portName, bool success)> ConfigureDeviceAsync(SerialPort port, string ssid, string password, string mqttIp)
     {
-        if (_espPort == null || !_espPort.IsOpen) return "ERROR: Port closed";
+        var wifiResult = await SendCommandAsync(port, $"WIFI_CONFIG:{ssid}:{password}\n", "WIFI_CONFIRMED", "WIFI_FAILED");
+        if (wifiResult != "SUCCESS")
+        {
+            return (port.PortName, false);
+        }
+        
+        var mqttResult = await SendCommandAsync(port, $"MQTT_CONFIG:{mqttIp}\n", "MQTT_CONFIRMED", "MQTT_FAILED");
+        return (port.PortName, mqttResult == "SUCCESS");
+    }
+
+    private async Task<string> SendCommandAsync(SerialPort port, string command, string successResponse, string failureResponse, int timeoutSeconds = 15)
+    {
+        if (port == null || !port.IsOpen) return "ERROR: Port closed";
 
         return await Task.Run(() =>
         {
@@ -208,10 +205,10 @@ public partial class ConfigureWifiView : UserControl
 
             try
             {
-                _espPort.DiscardInBuffer();
-                _espPort.DiscardOutBuffer();
-                _espPort.Write(command);
-                Debug.WriteLine($"[C#] SENT: {command.Trim()}");
+                port.DiscardInBuffer();
+                port.DiscardOutBuffer();
+                port.Write(command);
+                Debug.WriteLine($"[C#] SENT to {port.PortName}: {command.Trim()}");
             }
             catch (Exception ex) { return $"ERROR: Write failed ({ex.Message})"; }
 
@@ -219,9 +216,9 @@ public partial class ConfigureWifiView : UserControl
             {
                 try
                 {
-                    if (_espPort.IsOpen && _espPort.BytesToRead > 0)
+                    if (port.IsOpen && port.BytesToRead > 0)
                     {
-                        buffer += _espPort.ReadExisting();
+                        buffer += port.ReadExisting();
                         if (buffer.Contains(successResponse)) return "SUCCESS";
                         if (buffer.Contains(failureResponse)) return "FAILED";
                     }
@@ -237,25 +234,18 @@ public partial class ConfigureWifiView : UserControl
     {
         try
         {
-            // Get all network interfaces
             return NetworkInterface.GetAllNetworkInterfaces()
-                // Filter for ones that are running
                 .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
-                // Get their IP properties
                 .Select(ni => ni.GetIPProperties())
-                // Get all of their unicast addresses
                 .SelectMany(ni => ni.UnicastAddresses)
-                // Filter for IPv4 addresses that are not loopback
                 .Where(ip => ip.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip.Address))
-                // Select the address itself
                 .Select(ip => ip.Address.ToString())
-                // Get the first one, or a default value
                 .FirstOrDefault("192.168.1.100");
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[C#] Could not get local IP: {ex.Message}");
-            return "192.168.1.100"; // Fallback
+            return "192.168.1.100";
         }
     }
 }

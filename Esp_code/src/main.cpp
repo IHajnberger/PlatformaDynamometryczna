@@ -22,12 +22,10 @@ unsigned long lastMsg = 0;
 unsigned long lastReconnectAttempt = 0;
 
 // UNIQUE IDENTIFIER FOR THIS SPECIFIC ESP32
-// Change this to "Right"/"Left" before flashing your second board!
-const char* deviceId = "Left";
+char deviceId[32] = "Right"; // Default, loaded from NVS below
 
 // --- Function Prototypes ---
 void sync_time();
-unsigned long get_epoch_time();
 void reconnect();
 void serial_config_task(void *pvParameters);
 bool testWifiConnection(String testSsid, String testPass);
@@ -43,6 +41,8 @@ void setup() {
   ssid = preferences.getString("ssid", "");
   password = preferences.getString("password", "");
   mqtt_server = preferences.getString("mqtt_server", ""); // Load broker IP
+  String savedId = preferences.getString("device_id", "Right");
+  strlcpy(deviceId, savedId.c_str(), sizeof(deviceId));
   preferences.end();
 
   // 3. Attempt WiFi Connection
@@ -150,6 +150,24 @@ void serial_config_task(void *pvParameters) {
             }
           }
           
+          // 4. Device ID Configuration Command
+          else if (inputBuffer.startsWith("DEVICE_ID_CONFIG:")) {
+            String newDeviceId = inputBuffer.substring(17); 
+            newDeviceId.trim(); // Clean up hidden return characters
+
+            if (newDeviceId.length() > 0) {
+              Serial.printf("[ESP] Saving new Device ID: %s\n", newDeviceId.c_str());
+
+              // Save to permanent memory
+              preferences.begin("wifi_creds", false);
+              preferences.putString("device_id", newDeviceId);
+              preferences.end();
+
+              strlcpy(deviceId, newDeviceId.c_str(), sizeof(deviceId));
+              Serial.println("[ESP] DEVICE_ID_CONFIRMED");
+            }
+          }
+          
           inputBuffer = ""; // Reset buffer
         }
       } else {
@@ -192,16 +210,6 @@ void sync_time() {
   Serial.printf("\n[ESP-%s] Time Synced Successfully!\n", deviceId);
 }
 
-unsigned long get_epoch_time() {
-  time_t now;
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    return 0;
-  }
-  time(&now);
-  return now;
-}
-
 void reconnect() {
   // Safety guard: Do not attempt connection without a broker IP
   if (mqtt_server.length() == 0) return;
@@ -230,12 +238,20 @@ void loop() {
       client.loop();
 
       unsigned long now = millis();
-      if (now - lastMsg > 2000) {
+      if (now - lastMsg >= 100) {
         lastMsg = now;
 
-        // Generate dummy data
-        float randomWeight = 10.0 + (random(0, 20000) / 100.0); 
-        Serial.printf("[ESP-%s] Generated Weight: %.2f kg\n", deviceId, randomWeight);
+        // Generate wave data based on device ID
+        float timeInSeconds = now / 1000.0;
+        float generatedWeight = 0.0;
+        if (strcmp(deviceId, "Left") == 0) {
+          generatedWeight = sin(timeInSeconds);
+        } else if (strcmp(deviceId, "Right") == 0) {
+          generatedWeight = cos(timeInSeconds);
+        } else {
+          generatedWeight = 10.0 + (random(0, 20000) / 100.0); // Fallback
+        }
+        Serial.printf("[ESP-%s] Generated Weight: %.2f kg\n", deviceId, generatedWeight);
 
           // Format and print timestamp with milliseconds for serial output
           struct tm timeinfo;
@@ -247,12 +263,12 @@ void loop() {
           long milliseconds = tv.tv_usec / 1000;
           Serial.printf("[ESP-%s] Timestamp: %s.%03ld\n", deviceId, timeStringBuff, milliseconds);
 
-        unsigned long timestamp = get_epoch_time();
+        uint64_t timestamp = (uint64_t)tv.tv_sec;
 
         // Build JSON payload
         JsonDocument doc;
         doc["deviceId"] = deviceId;
-        doc["weight"] = randomWeight;
+        doc["weight"] = generatedWeight;
         doc["timestamp"] = timestamp;
 
         char jsonBuffer[256];

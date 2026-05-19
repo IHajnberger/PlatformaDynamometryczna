@@ -13,10 +13,9 @@ public partial class DataView : UserControl, IDisposable
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     
-    // Use DataLogger for (X, Y) pairs
     private readonly DataLogger? _logger1;
     private readonly DataLogger? _logger2;
-    private readonly DataLogger? _loggerAvg;
+    private readonly DataLogger? _loggerSum;
 
     public DataView()
     {
@@ -58,10 +57,10 @@ public partial class DataView : UserControl, IDisposable
             _logger2.LegendText = "Right Scale";
             _logger2.Color = ScottPlot.Colors.OrangeRed;
 
-            _loggerAvg = WeightPlot.Plot.Add.DataLogger();
-            _loggerAvg.LegendText = "Average";
-            _loggerAvg.Color = ScottPlot.Colors.Gray;
-            _loggerAvg.LineStyle.Pattern = LinePattern.Dotted;
+            _loggerSum = WeightPlot.Plot.Add.DataLogger();
+            _loggerSum.LegendText = "Average";
+            _loggerSum.Color = ScottPlot.Colors.Gray;
+            _loggerSum.LineStyle.Pattern = LinePattern.Dotted;
 
             // Configure the X-axis to display time
             WeightPlot.Plot.Axes.DateTimeTicksBottom();            
@@ -120,7 +119,7 @@ public partial class DataView : UserControl, IDisposable
         }
 
         // Check all three loggers are not null
-        if (_logger1 != null && _logger2 != null && _loggerAvg != null)
+        if (_logger1 != null && _logger2 != null && _loggerSum != null)
         {
             try
             {
@@ -135,15 +134,14 @@ public partial class DataView : UserControl, IDisposable
                     _logger2.Add(data.Timestamp.ToOADate(), data.Weight);
                     newDataRendered = true;
                 }
-                while (MqttService.Instance.AverageQueue.TryDequeue(out var data))
+                while (MqttService.Instance.SumQueue.TryDequeue(out var data))
                 {
-                    _loggerAvg.Add(data.Timestamp.ToOADate(), data.Weight);
+                    _loggerSum.Add(data.Timestamp.ToOADate(), data.Weight);
                     newDataRendered = true;
                 }
                 
                 if (newDataRendered)
                 {
-                    // Automatically adjust the axis limits to fit the new data
                     WeightPlot.Plot.Axes.AutoScale();
                     WeightPlot.Refresh();
                 }

@@ -19,15 +19,12 @@ public sealed class MqttService
 
     // --- Public Data Access ---
     
-    // We now track two sets of data for the two ESP32 scales, along with their timestamps
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device1Queue { get; } = new();
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device2Queue { get; } = new();
-    public ConcurrentQueue<(double Weight, DateTime Timestamp)> AverageQueue { get; } = new();
+    public ConcurrentQueue<(double Weight, DateTime Timestamp)> SumQueue { get; } = new();
 
-    // Track when we last heard from *any* device
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
     
-    // Track the latest weights to compute the average
     private double _lastWeight1 = 0;
     private double _lastWeight2 = 0;
 
@@ -75,12 +72,10 @@ public sealed class MqttService
                         {
                             var deviceId = idElement.GetString();
                             var weight = weightElement.GetDouble();
-                            // ESP32 sends epoch time in seconds, convert to DateTime
                             var timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampElement.GetInt64()).DateTime.ToLocalTime();
                             
                             LastPacketTime = DateTime.Now;
 
-                            // Route the data based on the device ID
                             if (deviceId == deviceOneId)
                             {
                                 _lastWeight1 = weight;
@@ -92,9 +87,8 @@ public sealed class MqttService
                                 Device2Queue.Enqueue((weight, timestamp));
                             }
                             
-                            // Calculate and queue the average, using the current time as the timestamp for the average
-                            var average = (_lastWeight1 + _lastWeight2) / 2.0;
-                            AverageQueue.Enqueue((average, DateTime.Now));
+                            var sum = _lastWeight1 + _lastWeight2;
+                            SumQueue.Enqueue((sum, DateTime.Now));
                         }
                     }
                     catch (Exception ex)

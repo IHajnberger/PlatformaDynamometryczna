@@ -16,13 +16,21 @@ namespace UI_Test_Avalonia;
 
 public partial class ConfigureWifiView : UserControl
 {
-    // Now we store a list of all found ESP ports
+    // Definiujemy zdarzenie dla MainWindow
+    public event EventHandler? BackClicked;
+
     private readonly List<SerialPort> _espPorts = new();
 
     public ConfigureWifiView()
     {
         InitializeComponent();
         
+        // Przekazanie sygnału cofania do góry po kliknięciu przycisku
+        BackButton.Click += (sender, e) =>
+        {
+            BackClicked?.Invoke(this, EventArgs.Empty);
+        };
+
         DetachedFromVisualTree += (s, e) => 
         {
             foreach (var port in _espPorts)
@@ -40,7 +48,6 @@ public partial class ConfigureWifiView : UserControl
         StatusTextBlock.Foreground = Brushes.Orange;
         InputPanel.IsEnabled = false;
 
-        // Clean up any old ports
         foreach (var port in _espPorts)
         {
             port.Close();
@@ -57,8 +64,6 @@ public partial class ConfigureWifiView : UserControl
             StatusTextBlock.Text = $"Status: Found {_espPorts.Count} ESP(s) on {portNames}. Ready to configure.";
             StatusTextBlock.Foreground = Brushes.Green;
             InputPanel.IsEnabled = true;
-            
-            // Auto-fill the IP address
             MqttIpTextBox.Text = GetLocalIPAddress();
         }
         else
@@ -106,13 +111,11 @@ public partial class ConfigureWifiView : UserControl
                         {
                             Debug.WriteLine($"[C#] Handshake successful on {portName}. Adding to list.");
                             foundPorts.Add(sp);
-                            goto NextPort; // Exit the inner while loop and move to the next port
+                            goto NextPort;
                         }
                     }
                     Thread.Sleep(50);
                 }
-                
-                // If we get here, it wasn't an ESP. Close it.
                 sp.Close();
                 sp.Dispose();
             }
@@ -120,8 +123,7 @@ public partial class ConfigureWifiView : UserControl
             {
                 Debug.WriteLine($"[C#] Error probing {portName}: {ex.Message}");
             }
-            
-            NextPort:; // Label to jump to for the goto statement
+            NextPort:;
         }
         return foundPorts;
     }
@@ -160,8 +162,6 @@ public partial class ConfigureWifiView : UserControl
         InputPanel.IsEnabled = false;
 
         int successCount = 0;
-        
-        // Configure all found ports in parallel
         var tasks = _espPorts.Select(port => ConfigureDeviceAsync(port, ssid, password, mqttIp));
         var results = await Task.WhenAll(tasks);
 

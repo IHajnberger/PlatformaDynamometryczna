@@ -10,6 +10,9 @@ namespace UI_Test_Avalonia;
 
 public partial class DataView : UserControl, IDisposable
 {
+    // Definiujemy zdarzenie, na które MainWindow będzie mogło nasłuchiwać
+    public event EventHandler? BackClicked;
+
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     
@@ -21,6 +24,12 @@ public partial class DataView : UserControl, IDisposable
     {
         InitializeComponent();
         Debug.WriteLine("[DataView] Constructor called.");
+
+        // Obsługa kliknięcia przycisku - przekazujemy sygnał dalej do góry
+        BackButton.Click += (sender, e) =>
+        {
+            BackClicked?.Invoke(this, EventArgs.Empty);
+        };
 
         _renderTimer = new DispatcherTimer
         {
@@ -48,7 +57,6 @@ public partial class DataView : UserControl, IDisposable
 
             WeightPlot.Plot.Clear();
             
-            // Create and style the three loggers
             _logger1 = WeightPlot.Plot.Add.DataLogger();
             _logger1.LegendText = "Left Scale";
             _logger1.Color = ScottPlot.Colors.CornflowerBlue;
@@ -62,7 +70,6 @@ public partial class DataView : UserControl, IDisposable
             _loggerSum.Color = ScottPlot.Colors.Gray;
             _loggerSum.LineStyle.Pattern = LinePattern.Dotted;
 
-            // Configure the X-axis to display time
             WeightPlot.Plot.Axes.DateTimeTicksBottom();            
             WeightPlot.Plot.YLabel("Weight (kg)");
             WeightPlot.Plot.Title("Live Asymmetry Data");
@@ -98,9 +105,7 @@ public partial class DataView : UserControl, IDisposable
     private void RenderTimer_Tick(object? sender, EventArgs e)
     {
         var wasConnected = _isConnected;
-        
         bool isCurrentlyConnected = (DateTime.Now - MqttService.Instance.LastPacketTime).TotalMilliseconds < 4000;
-        
         bool newDataRendered = false;
 
         if (isCurrentlyConnected != wasConnected)
@@ -118,12 +123,10 @@ public partial class DataView : UserControl, IDisposable
             }
         }
 
-        // Check all three loggers are not null
         if (_logger1 != null && _logger2 != null && _loggerSum != null)
         {
             try
             {
-                // Dequeue and plot data for each device using the timestamp
                 while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
                 {
                     _logger1.Add(data.Timestamp.ToOADate(), data.Weight);

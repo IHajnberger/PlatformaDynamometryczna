@@ -2,18 +2,98 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="UI_Test_Avalonia.HomeView">
-    <Grid>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-            <TextBlock Text="Welcome to the Main Application" 
-                       FontSize="28" 
-                       FontWeight="Bold" 
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="Select an option from the menu to begin." 
-                       FontSize="18" 
-                       Foreground="Gray" 
-                       HorizontalAlignment="Center"/>
+
+    <UserControl.Styles>
+        <Style Selector="Button.DashboardCard">
+            <Setter Property="Background" Value="#2d2d2d"/>
+            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#373737"/>
+            <Setter Property="BorderBrush" Value="#4f4f4f"/>
+        </Style>
+        
+        <Style Selector="Button.DashboardCard:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.02)"/>
+        </Style>
+
+        <Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="BorderBrush" Value="#3b82f6"/>
+        </Style>
+        <Style Selector="Button.DashboardCard:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40" Spacing="30" MaxWidth="1100" HorizontalAlignment="Stretch">
+            
+            <StackPanel Spacing="5">
+                <TextBlock Text="Główny Pulpit" FontSize="32" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
+            </StackPanel>
+
+            <UniformGrid Columns="3" Rows="2" HorizontalAlignment="Stretch">
+                
+                <Button Name="TileTest" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="Play" FontSize="40" Foreground="#3b82f6"/>
+                        <TextBlock Text="Testowanie i Ćwiczenia" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Rozpocznij zbieranie danych na żywo" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Name="TilePatients" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="People" FontSize="40" Foreground="#10b981"/>
+                        <TextBlock Text="Lista Pacjentów" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Zarządzaj kartoteką i historią" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Name="TileWifi" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="Wifi4" FontSize="40" Foreground="#f59e0b"/>
+                        <TextBlock Text="Skonfiguruj WiFi" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Ustawienia połączenia platformy" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Name="TileWiki" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="Library" FontSize="40" Foreground="#8b5cf6"/>
+                        <TextBlock Text="Baza Wiedzy (Wiki)" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Protokoły i opisy ćwiczeń" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Name="TileAbout" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="Important" FontSize="40" Foreground="#ec4899"/>
+                        <TextBlock Text="O programie" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Informacje o systemie PLACEHOLDER" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+            </UniformGrid>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
+    
 </UserControl>

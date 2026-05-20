@@ -3,10 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UI_Test_Avalonia"
-        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="760"
+        mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="UI_Test_Avalonia.MainWindow"
         Title="PhysioFlow" 
-        Width="1280" Height="760"
+        Width="1500" Height="1000"
         Background="{DynamicResource SystemRegionBrush}">
     
     <DockPanel>

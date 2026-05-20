@@ -26,6 +26,9 @@ C:\Users\mmule\.nuget\packages\avalonia.x11\11.3.15\lib\net8.0\Avalonia.X11.dll
 C:\Users\mmule\.nuget\packages\communitytoolkit.mvvm\8.4.2\lib\net8.0\CommunityToolkit.Mvvm.dll
 C:\Users\mmule\.nuget\packages\fluentavaloniaui\2.4.1\lib\net6.0\FluentAvalonia.dll
 C:\Users\mmule\.nuget\packages\harfbuzzsharp\8.3.1.1\lib\net8.0\HarfBuzzSharp.dll
+C:\Users\mmule\.nuget\packages\livechartscore\2.0.0-rc4.5\lib\net8.0\LiveChartsCore.dll
+C:\Users\mmule\.nuget\packages\livechartscore.skiasharpview.avalonia\2.0.0-rc4.5\lib\net8.0\LiveChartsCore.SkiaSharpView.Avalonia.dll
+C:\Users\mmule\.nuget\packages\livechartscore.skiasharpview\2.0.0-rc4.5\lib\net8.0\LiveChartsCore.SkiaSharpView.dll
 C:\Users\mmule\.nuget\packages\microcom.runtime\0.11.0\lib\net5.0\MicroCom.Runtime.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.CSharp.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\Microsoft.VisualBasic.Core.dll
@@ -38,6 +41,7 @@ C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\netsta
 C:\Users\mmule\.nuget\packages\scottplot.avalonia\5.0.39\lib\net8.0\ScottPlot.Avalonia.dll
 C:\Users\mmule\.nuget\packages\scottplot\5.0.39\lib\net8.0\ScottPlot.dll
 C:\Users\mmule\.nuget\packages\skiasharp\2.88.9\lib\net6.0\SkiaSharp.dll
+C:\Users\mmule\.nuget\packages\skiasharp.harfbuzz\2.88.8\lib\net6.0\SkiaSharp.HarfBuzz.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.AppContext.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Buffers.dll
 C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\8.0.25\ref\net8.0\System.Collections.Concurrent.dll

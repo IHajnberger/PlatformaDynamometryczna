@@ -1,158 +1,160 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
-using ScottPlot;
-using ScottPlot.Plottables;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.SkiaSharpView.Painting.Effects;
+using SkiaSharp;
 
 namespace UI_Test_Avalonia;
 
 public partial class DataView : UserControl, IDisposable
 {
-    // Definiujemy zdarzenie, na które MainWindow będzie mogło nasłuchiwać
     public event EventHandler? BackClicked;
-
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     
-    private readonly DataLogger? _logger1;
-    private readonly DataLogger? _logger2;
-    private readonly DataLogger? _loggerSum;
+    private readonly ObservableCollection<double> _leftValues = new();
+    private readonly ObservableCollection<double> _rightValues = new();
+    private readonly ObservableCollection<double> _sumValues = new();
+
+    public ObservableCollection<ISeries> ChartSeries { get; set; }
+    public Axis[] XAxes { get; set; }
+    public Axis[] YAxes { get; set; }
+    public SolidColorPaint LegendPaint { get; set; } = new(SKColors.White);
 
     public DataView()
     {
         InitializeComponent();
         Debug.WriteLine("[DataView] Constructor called.");
 
-        // Obsługa kliknięcia przycisku - przekazujemy sygnał dalej do góry
-        BackButton.Click += (sender, e) =>
+        BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
+
+        // KROK 1: ULTRA-PŁYNNE GRADIENTY I EMISJA ŚWIATŁA (React / Tailwind Style)
+        var leftColor = SKColor.Parse("#3b82f6");
+        var rightColor = SKColor.Parse("#f59e0b");
+        var sumColor = SKColor.Parse("#10b981");
+
+        ChartSeries = new ObservableCollection<ISeries>
         {
-            BackClicked?.Invoke(this, EventArgs.Empty);
+            new LineSeries<double>
+            {
+                Name = "Left Scale",
+                Values = _leftValues,
+                GeometrySize = 0,                 // Zero punktów (czysta, gładka wstęga)
+                LineSmoothness = 0.75,            // Wyższy współczynnik wygładzania dla super opływowych krzywych
+                Stroke = new SolidColorPaint(leftColor) { StrokeThickness = 4 }, // Grubsza, wyraźniejsza linia
+                
+                // Nowoczesny, zanikający gradient pod wykresem (Area Chart)
+                Fill = new LinearGradientPaint(
+                    new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
+                    new SKPoint(0.5f, 0),         // Początek gradientu (góra)
+                    new SKPoint(0.5f, 1)),        // Koniec gradientu (dół)
+                
+                // Płynna, dynamiczna fizyka ruchu (Easing)
+                AnimationsSpeed = TimeSpan.FromMilliseconds(350),
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+            },
+            new LineSeries<double>
+            {
+                Name = "Right Scale",
+                Values = _rightValues,
+                GeometrySize = 0,
+                LineSmoothness = 0.75,
+                Stroke = new SolidColorPaint(rightColor) { StrokeThickness = 4 },
+                Fill = new LinearGradientPaint(
+                    new[] { rightColor.WithAlpha(40), rightColor.WithAlpha(0) },
+                    new SKPoint(0.5f, 0),
+                    new SKPoint(0.5f, 1)),
+                AnimationsSpeed = TimeSpan.FromMilliseconds(350),
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+            },
+            new LineSeries<double>
+            {
+                Name = "Sum",
+                Values = _sumValues,
+                GeometrySize = 0,
+                LineSmoothness = 0.75,
+                // Linia sumy jako elegancka, przerywana linia (Dash Path Effect)
+                Stroke = new SolidColorPaint(sumColor) 
+                { 
+                    StrokeThickness = 2,
+                    PathEffect = new DashEffect(new float[] { 6, 6 }) // 6px kreski, 6px przerwy
+                },
+                Fill = null,
+                AnimationsSpeed = TimeSpan.FromMilliseconds(350),
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+            }
         };
 
-        _renderTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(20)
+        // KROK 2: MINIMALISTYCZNE, NIEODWRACAJĄCE UWAGI OSI
+        XAxes = new Axis[] {
+            new Axis {
+                TextSize = 0, // Ukryte podpisy osi X dla idealnej płynności strumienia danych
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) 
+                { 
+                    StrokeThickness = 1,
+                    PathEffect = new DashEffect(new float[] { 4, 4 }) // Kropkowane linie siatki (bardzo modernistyczne)
+                }
+            }
         };
+
+        YAxes = new Axis[] {
+            new Axis {
+                LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
+                TextSize = 11,
+                Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 }
+            }
+        };
+
+        DataContext = this;
+
+        // KROK 3: ZWIĘKSZENIE CZĘSTOTLIWOŚCI PRÓBKOWANIA DLA "FLUID EFFECT"
+        // Zmniejszamy interwał z 40ms do 30ms, aby wykres był bardziej dynamiczny
+        _renderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
         _renderTimer.Tick += RenderTimer_Tick;
 
-        AttachedToVisualTree += (_, _) => 
-        {
-            Debug.WriteLine("[DataView] Attached to Window - Starting Render Timer.");
-            _renderTimer.Start();
-            WeightPlot.Refresh();
-        };
-        DetachedFromVisualTree += (_, _) => 
-        {
-            Debug.WriteLine("[DataView] Detached from Window - Stopping Render Timer.");
-            _renderTimer.Stop();
-        };
-
-        try
-        {
-            Debug.WriteLine("[DataView] Initializing ScottPlot...");
-            StatusText.Text = "Status: Waiting for MQTT Service...";
-            StatusText.Foreground = Brushes.Orange;
-
-            WeightPlot.Plot.Clear();
-            
-            _logger1 = WeightPlot.Plot.Add.DataLogger();
-            _logger1.LegendText = "Left Scale";
-            _logger1.Color = ScottPlot.Colors.CornflowerBlue;
-
-            _logger2 = WeightPlot.Plot.Add.DataLogger();
-            _logger2.LegendText = "Right Scale";
-            _logger2.Color = ScottPlot.Colors.OrangeRed;
-
-            _loggerSum = WeightPlot.Plot.Add.DataLogger();
-            _loggerSum.LegendText = "Average";
-            _loggerSum.Color = ScottPlot.Colors.Gray;
-            _loggerSum.LineStyle.Pattern = LinePattern.Dotted;
-
-            WeightPlot.Plot.Axes.DateTimeTicksBottom();            
-            WeightPlot.Plot.YLabel("Weight (kg)");
-            WeightPlot.Plot.Title("Live Asymmetry Data");
-            WeightPlot.Plot.ShowLegend(Alignment.UpperLeft);
-            
-            WeightPlot.Refresh();
-            
-            Debug.WriteLine("[DataView] Initialization complete.");
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[FATAL] Unexpected Exception during init: {ex.Message}");
-            ShowError($"An unexpected error occurred during startup:\n\n{ex.Message}");
-        }
+        AttachedToVisualTree += (_, _) => _renderTimer.Start();
+        DetachedFromVisualTree += (_, _) => _renderTimer.Stop();
     }
 
-    public void Dispose()
-    {
-        Debug.WriteLine("[DataView] Disposing...");
-        _renderTimer.Stop();
-    }
-
-    private void ShowError(string message)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            MainPanel.IsVisible = false;
-            ErrorText.IsVisible = true;
-            ErrorText.Text = message;
-        });
-    }
+    public void Dispose() => _renderTimer.Stop();
 
     private void RenderTimer_Tick(object? sender, EventArgs e)
     {
-        var wasConnected = _isConnected;
         bool isCurrentlyConnected = (DateTime.Now - MqttService.Instance.LastPacketTime).TotalMilliseconds < 4000;
-        bool newDataRendered = false;
 
-        if (isCurrentlyConnected != wasConnected)
+        if (isCurrentlyConnected != _isConnected)
         {
             _isConnected = isCurrentlyConnected;
-            if (_isConnected)
-            {
-                StatusText.Text = "Status: Receiving data from ESP32 devices...";
-                StatusText.Foreground = Brushes.Green;
-            }
-            else
-            {
-                StatusText.Text = "Status: Connection lost. Waiting for ESP32 MQTT publish...";
-                StatusText.Foreground = Brushes.Orange;
-            }
+            StatusText.Text = _isConnected ? "Status: Pobieranie danych z platform..." : "Status: Połączenie przerwane. Oczekiwanie na ESP32...";
+            StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        if (_logger1 != null && _logger2 != null && _loggerSum != null)
+        // Dequeue danych z brokera MQTT
+        while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
         {
-            try
-            {
-                while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
-                {
-                    _logger1.Add(data.Timestamp.ToOADate(), data.Weight);
-                    newDataRendered = true;
-                }
-                while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
-                {
-                    _logger2.Add(data.Timestamp.ToOADate(), data.Weight);
-                    newDataRendered = true;
-                }
-                while (MqttService.Instance.SumQueue.TryDequeue(out var data))
-                {
-                    _loggerSum.Add(data.Timestamp.ToOADate(), data.Weight);
-                    newDataRendered = true;
-                }
-                
-                if (newDataRendered)
-                {
-                    WeightPlot.Plot.Axes.AutoScale();
-                    WeightPlot.Refresh();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[DataView] Error during ScottPlot rendering: {ex.Message}");
-            }
+            _leftValues.Add(data.Weight);
         }
+        while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
+        {
+            _rightValues.Add(data.Weight);
+        }
+        while (MqttService.Instance.SumQueue.TryDequeue(out var data))
+        {
+            _sumValues.Add(data.Weight);
+        }
+
+        // Zwiększamy bufor wyświetlania z 50 do 70 punktów, 
+        // dzięki czemu fala płynie wolniej i bardziej dostojnie (fluid effect)
+        int maxPoints = 70;
+        while (_leftValues.Count > maxPoints) _leftValues.RemoveAt(0);
+        while (_rightValues.Count > maxPoints) _rightValues.RemoveAt(0);
+        while (_sumValues.Count > maxPoints) _sumValues.RemoveAt(0);
     }
 }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ZiK9fCLIco8=",
+  "dgSpecHash": "nCa6atjw2OQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
   "expectedPackageFiles": [
@@ -27,6 +27,9 @@
     "C:\\Users\\mmule\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\8.3.1.1\\harfbuzzsharp.nativeassets.macos.8.3.1.1.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\8.3.1.1\\harfbuzzsharp.nativeassets.webassembly.8.3.1.1.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\8.3.1.1\\harfbuzzsharp.nativeassets.win32.8.3.1.1.nupkg.sha512",
+    "C:\\Users\\mmule\\.nuget\\packages\\livechartscore\\2.0.0-rc4.5\\livechartscore.2.0.0-rc4.5.nupkg.sha512",
+    "C:\\Users\\mmule\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-rc4.5\\livechartscore.skiasharpview.2.0.0-rc4.5.nupkg.sha512",
+    "C:\\Users\\mmule\\.nuget\\packages\\livechartscore.skiasharpview.avalonia\\2.0.0-rc4.5\\livechartscore.skiasharpview.avalonia.2.0.0-rc4.5.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\mqttnet\\4.3.3.952\\mqttnet.4.3.3.952.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\runtime.linux-arm.runtime.native.system.io.ports\\8.0.0\\runtime.linux-arm.runtime.native.system.io.ports.8.0.0.nupkg.sha512",
@@ -38,6 +41,7 @@
     "C:\\Users\\mmule\\.nuget\\packages\\scottplot\\5.0.39\\scottplot.5.0.39.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\scottplot.avalonia\\5.0.39\\scottplot.avalonia.5.0.39.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\skiasharp\\2.88.9\\skiasharp.2.88.9.nupkg.sha512",
+    "C:\\Users\\mmule\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.8\\skiasharp.harfbuzz.2.88.8.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\skiasharp.nativeassets.linux\\2.88.9\\skiasharp.nativeassets.linux.2.88.9.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\skiasharp.nativeassets.linux.nodependencies\\2.88.8\\skiasharp.nativeassets.linux.nodependencies.2.88.8.nupkg.sha512",
     "C:\\Users\\mmule\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.9\\skiasharp.nativeassets.macos.2.88.9.nupkg.sha512",

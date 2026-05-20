@@ -337,3 +337,7 @@ C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Tes
 C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\CommunityToolkit.Mvvm.dll
 C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\Avalonia.Controls.DataGrid.dll
 C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\FluentAvalonia.dll
+C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\LiveChartsCore.dll
+C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\LiveChartsCore.SkiaSharpView.dll
+C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\LiveChartsCore.SkiaSharpView.Avalonia.dll
+C:\Users\mmule\Documents\GitHub\PlatformaDynamometryczna\UI_Test_Avalonia\UI_Test_Avalonia\bin\Debug\net8.0\SkiaSharp.HarfBuzz.dll

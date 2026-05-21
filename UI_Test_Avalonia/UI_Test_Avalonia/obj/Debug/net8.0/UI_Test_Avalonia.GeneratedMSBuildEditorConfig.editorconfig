@@ -40,5 +40,8 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/HomeView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/LoginView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

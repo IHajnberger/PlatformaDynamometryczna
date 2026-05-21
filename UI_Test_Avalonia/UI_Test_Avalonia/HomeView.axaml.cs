@@ -1,22 +1,44 @@
+using System;
 using Avalonia.Controls;
 
 namespace UI_Test_Avalonia;
 
 public partial class HomeView : UserControl
 {
-    // Konstruktor bezparametrowy dla designera Avalonii (wymagany!)
-    public HomeView()
+    public event Action? OnLiveDataClicked;
+    public event Action? OnConfigureWifiClicked;
+    public event Action? OnLogoutClicked; // NOWOŚĆ: Zdarzenie wylogowania
+
+    public HomeView(string role)
     {
         InitializeComponent();
+
+        // Podpięcie dotychczasowych przycisków
+        var liveDataBtn = this.FindControl<Button>("TileTest");
+        if (liveDataBtn != null) liveDataBtn.Click += (s, e) => OnLiveDataClicked?.Invoke();
+
+        var configWifiBtn = this.FindControl<Button>("TileWifi");
+        if (configWifiBtn != null) configWifiBtn.Click += (s, e) => OnConfigureWifiClicked?.Invoke();
+
+        // NOWOŚĆ: Podpięcie przycisku wylogowania
+        var logoutBtn = this.FindControl<Button>("TileLogout");
+        if (logoutBtn != null)
+        {
+            logoutBtn.Click += (s, e) => OnLogoutClicked?.Invoke();
+        }
+
+        ApplyPermissions(role);
     }
 
-    // Konstruktor roboczy, do którego przekażemy okno główne
-    public HomeView(MainWindow mainWindow) : this()
+    private void ApplyPermissions(string role)
     {
-        // Podpinamy zdarzenia kliknięcia kafli pod metody w MainWindow
-        TileTest.Click += mainWindow.LiveDataButton_Click;
-        //TilePatients.Click += mainWindow.OnPatientsTile_Click; // Musimy dodać tę metodę w MainWindow
-        TileWifi.Click += mainWindow.ConfigureWifiButton_Click;
-        TileAbout.Click += (s, e) => { /* Tutaj możesz obsłużyć About */ };
+        var tilePatients = this.FindControl<Button>("TilePatients");
+        var tileWifi = this.FindControl<Button>("TileWifi");
+
+        if (role == "Patient")
+        {
+            if (tilePatients != null) tilePatients.IsVisible = false;
+            if (tileWifi != null) tileWifi.IsVisible = false;
+        }
     }
 }

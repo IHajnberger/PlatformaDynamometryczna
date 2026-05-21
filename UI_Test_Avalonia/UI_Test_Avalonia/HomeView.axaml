@@ -45,10 +45,26 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40" Spacing="30" MaxWidth="1100" HorizontalAlignment="Stretch">
             
-            <StackPanel Spacing="5">
-                <TextBlock Text="Główny Pulpit" FontSize="32" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
-            </StackPanel>
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="Główny Pulpit" FontSize="32" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
+                </StackPanel>
+    
+                <Button Grid.Column="1" 
+                        Name="TileLogout" 
+                        VerticalAlignment="Center" 
+                        Padding="14,10" 
+                        Classes="DashboardCard"
+                        Theme="{StaticResource TransparentButton}"
+                        CornerRadius="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <fa:SymbolIcon Symbol="Dismiss" Foreground="#ef4444" FontSize="20"/>
+                        <TextBlock Text="Wyloguj się" Foreground="#ef4444" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+            
 
             <UniformGrid Columns="3" Rows="2" HorizontalAlignment="Stretch">
                 

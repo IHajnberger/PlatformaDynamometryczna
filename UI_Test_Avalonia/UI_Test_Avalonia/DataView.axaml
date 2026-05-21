@@ -12,7 +12,7 @@
     <Grid Margin="20" RowDefinitions="Auto, *">
         
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,20">
-            <Button Name="BackButton" VerticalAlignment="Center" Padding="8,6" Theme="{StaticResource TransparentButton}">
+            <Button Name="BackButton" VerticalAlignment="Center" Classes= "ModernCard" Padding="8,6" Theme="{StaticResource TransparentButton}">
                 <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
             </Button>
             <StackPanel VerticalAlignment="Center" Spacing="2">
@@ -79,7 +79,7 @@
                     <Grid RowDefinitions="Auto, *">
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
                             <TextBlock Text="Wykres Siły w Czasie" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
-                            <Button Content="Zapisz Sesję" Classes="Accent" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>
+                            <Button Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>
                         </DockPanel>
                         
                         <lvc:CartesianChart Grid.Row="1" 

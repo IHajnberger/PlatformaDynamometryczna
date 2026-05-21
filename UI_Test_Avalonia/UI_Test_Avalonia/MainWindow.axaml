@@ -5,7 +5,7 @@
         xmlns:local="clr-namespace:UI_Test_Avalonia"
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="UI_Test_Avalonia.MainWindow"
-        Title="PhysioFlow" 
+        Title="PLACEHOLDER" 
         Width="1500" Height="1000"
         Background="#121212"> <DockPanel>
         <Border DockPanel.Dock="Top" 

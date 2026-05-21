@@ -84,8 +84,8 @@ public partial class ConfigureWifiView : UserControl
             try
             {
                 var sp = new SerialPort(portName, 115200) { WriteTimeout = 1000, ReadTimeout = 1000 };
-                sp.DtrEnable = false;
-                sp.RtsEnable = false;
+                sp.DtrEnable = true;
+                sp.RtsEnable = true;
                 sp.Open();
 
                 Thread.Sleep(1500);
@@ -100,7 +100,7 @@ public partial class ConfigureWifiView : UserControl
                 {
                     if ((DateTime.Now - lastPingTime).TotalMilliseconds > 500)
                     {
-                        sp.Write("\nPING\n");
+                        sp.Write("PING\n");
                         lastPingTime = DateTime.Now;
                     }
 
@@ -136,7 +136,73 @@ public partial class ConfigureWifiView : UserControl
         StatusTextBlock.Foreground = Brushes.LightBlue;
         ScanButton_Click(null, new RoutedEventArgs());
     }
+    private async void DisconnectButton_Click(object? sender, RoutedEventArgs e)
+{
+    StatusTextBlock.Text = "Status: Disconnecting ESP devices from network...";
+    StatusTextBlock.Foreground = Brushes.Orange;
+    InputPanel.IsEnabled = false;
 
+    // 1. Wysyłamy komendę do urządzeń
+    foreach (var port in _espPorts)
+    {
+        if (port != null && port.IsOpen)
+        {
+            try
+            {
+                port.DtrEnable = true;
+                port.RtsEnable = true;
+                
+                port.DiscardInBuffer();
+                port.DiscardOutBuffer();
+                
+                port.Write("DISCONNECT_CMD\n");
+                Debug.WriteLine($"[C#] Sent DISCONNECT_CMD to {port.PortName}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[C#] Failed to send command to {port.PortName}: {ex.Message}");
+            }
+        }
+    }
+
+    // 2. KLUCZOWA POPRAWKA: Dajemy systemowi Windows pełne 1.5 sekundy (1500ms)
+    // na to, aby ESP32-C3 odebrało komendę, wyczyściło pamięć i wykonało ESP.restart().
+    // W tym czasie Windows usłyszy restart urządzenia i odblokuje sterownik portu COM.
+    await Task.Delay(1500);
+
+    // 3. Zamykamy i bezwzględnie niszczymy obiekty w C#
+    try
+    {
+        foreach (var port in _espPorts)
+        {
+            try
+            {
+                if (port.IsOpen) 
+                {
+                    port.DiscardInBuffer();
+                    port.DiscardOutBuffer();
+                    port.Close();
+                }
+                port.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[C#] Soft close warning on {port.PortName}: {ex.Message}");
+            }
+        }
+        _espPorts.Clear(); // Czyszczenie listy
+        
+        StatusTextBlock.Text = "Status: Disconnected. Ports are fully unlocked and ready.";
+        StatusTextBlock.Foreground = Brushes.Crimson;
+    }
+    catch (Exception ex)
+    {
+        Debug.WriteLine($"[C#] Error during final hardware port clear: {ex.Message}");
+        StatusTextBlock.Text = "Status: Error while freeing hardware ports.";
+        StatusTextBlock.Foreground = Brushes.Red;
+    }
+}
+    
     private async void ConnectButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_espPorts.Count == 0)

@@ -9,7 +9,7 @@
 Preferences preferences;
 String ssid = "";
 String password = "";
-String mqtt_server = ""; // Loaded dynamically from NVS
+String mqtt_server = ""; 
 
 const char* publish_topic = "esp32/scale/telemetry";
 const char* ntpServer = "pool.ntp.org";
@@ -22,30 +22,37 @@ unsigned long lastMsg = 0;
 unsigned long lastReconnectAttempt = 0;
 
 // UNIQUE IDENTIFIER FOR THIS SPECIFIC ESP32
-char deviceId[32] = "Right"; // Default, loaded from NVS below
+char deviceId[32] = "Right"; 
+
+String inputBuffer = ""; // Globalny bufor dla komend z USB
 
 // --- Function Prototypes ---
 void sync_time();
 void reconnect();
-void serial_config_task(void *pvParameters);
+void check_serial_commands(); 
 bool testWifiConnection(String testSsid, String testPass);
 
 void setup() {
+  // Inicjalizacja klasycznego portu szeregowego
   Serial.begin(115200);
   
-  // 1. Start the Serial Listener Task immediately
-  xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
+  // Czekamy maksymalnie 2 sekundy na zainicjalizowanie portu w systemie Windows
+  int usbTimeout = 0;
+  while (!Serial && usbTimeout < 20) {
+      delay(100);
+      usbTimeout++;
+  }
 
-  // 2. Load Credentials from NVS
+  // Odczyt danych z pamięci stałej NVS
   preferences.begin("wifi_creds", true); // true = read-only mode
   ssid = preferences.getString("ssid", "");
   password = preferences.getString("password", "");
-  mqtt_server = preferences.getString("mqtt_server", ""); // Load broker IP
+  mqtt_server = preferences.getString("mqtt_server", ""); 
   String savedId = preferences.getString("device_id", "Right");
   strlcpy(deviceId, savedId.c_str(), sizeof(deviceId));
   preferences.end();
 
-  // 3. Attempt WiFi Connection
+  // Próba automatycznego połączenia z Wi-Fi po włączeniu zasilania
   if (ssid.length() > 0) {
     Serial.printf("\n[ESP-%s] Connecting to SSID: %s\n", deviceId, ssid.c_str());
     WiFi.begin(ssid.c_str(), password.c_str());
@@ -64,7 +71,6 @@ void setup() {
       
       sync_time();
       
-      // Only set up MQTT if we actually have an IP saved
       if (mqtt_server.length() > 0) {
         Serial.printf("[ESP-%s] Setting MQTT Broker to: %s\n", deviceId, mqtt_server.c_str());
         client.setServer(mqtt_server.c_str(), 1883);
@@ -79,154 +85,12 @@ void setup() {
   }
 }
 
-// --- Background Task: Serial Command Listener ---
-void serial_config_task(void *pvParameters) {
-  String inputBuffer = "";
-  
-  while (1) {
-    while (Serial.available() > 0) {
-      char c = Serial.read();
-      
-      if (c == '\n' || c == '\r') {
-        if (inputBuffer.length() > 0) {
-          
-          // 1. Handshake
-          if (inputBuffer.startsWith("PING")) {
-            Serial.println("START_APLIKACJA");
-          } 
-          
-          // 2. WiFi Configuration Command
-          else if (inputBuffer.startsWith("WIFI_CONFIG:")) {
-            int firstColon = inputBuffer.indexOf(':');
-            int secondColon = inputBuffer.indexOf(':', firstColon + 1);
-
-            if (firstColon > 0 && secondColon > firstColon) {
-              String newSsid = inputBuffer.substring(firstColon + 1, secondColon);
-              String newPass = inputBuffer.substring(secondColon + 1);
-
-            Serial.printf("[ESP-%s] Testing new WiFi Config... SSID: %s\n", deviceId, newSsid.c_str());
-
-              if (testWifiConnection(newSsid, newPass)) {
-                // Connection successful! Save credentials
-                preferences.begin("wifi_creds", false);
-                preferences.putString("ssid", newSsid);
-                preferences.putString("password", newPass);
-                preferences.end();
-
-              Serial.printf("[ESP-%s] WIFI_CONFIRMED\n", deviceId);
-                // DO NOT RESTART HERE! Wait for MQTT config.
-              } else {
-                // Connection failed
-              Serial.printf("[ESP-%s] WIFI_FAILED\n", deviceId);
-              }
-            }
-          }
-          
-          // 3. MQTT Configuration Command
-          else if (inputBuffer.startsWith("MQTT_CONFIG:")) {
-            // Expected format: MQTT_CONFIG:192.168.1.50
-            String newMqtt = inputBuffer.substring(12); 
-            newMqtt.trim(); // Clean up hidden return characters
-
-            if (newMqtt.length() > 0) {
-              Serial.printf("[ESP] Saving and applying new MQTT Broker... IP: %s\n", newMqtt.c_str());
-
-              // Save to permanent memory
-              preferences.begin("wifi_creds", false);
-              preferences.putString("mqtt_server", newMqtt);
-              preferences.end();
-
-              // Apply the new settings immediately in memory
-              mqtt_server = newMqtt;
-              client.setServer(mqtt_server.c_str(), 1883);
-              
-              // Force disconnect if it was connected to an old broker
-              if (client.connected()) {
-                client.disconnect();
-              }
-
-              Serial.println("[ESP] MQTT_CONFIRMED");
-              // No restart needed. The main loop will now attempt to connect.
-            }
-          }
-          
-          // 4. Device ID Configuration Command
-          else if (inputBuffer.startsWith("DEVICE_ID_CONFIG:")) {
-            String newDeviceId = inputBuffer.substring(17); 
-            newDeviceId.trim(); // Clean up hidden return characters
-
-            if (newDeviceId.length() > 0) {
-              Serial.printf("[ESP] Saving new Device ID: %s\n", newDeviceId.c_str());
-
-              // Save to permanent memory
-              preferences.begin("wifi_creds", false);
-              preferences.putString("device_id", newDeviceId);
-              preferences.end();
-
-              strlcpy(deviceId, newDeviceId.c_str(), sizeof(deviceId));
-              Serial.println("[ESP] DEVICE_ID_CONFIRMED");
-            }
-          }
-          
-          inputBuffer = ""; // Reset buffer
-        }
-      } else {
-        inputBuffer += c; 
-      }
-    }
-    vTaskDelay(10 / portTICK_PERIOD_MS); 
-  }
-}
-
-// --- Helper Functions ---
-bool testWifiConnection(String testSsid, String testPass) {
-  // Disconnect from current WiFi if connected
-  WiFi.disconnect();
-  delay(100);
-
-  Serial.printf("[ESP-%s] Attempting to connect to new WiFi...\n", deviceId);
-  WiFi.begin(testSsid.c_str(), testPass.c_str());
-
-  int attempts = 0;
-  // Wait up to 10 seconds for connection (20 * 500ms)
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
-  }
-  Serial.println();
-
-  return WiFi.status() == WL_CONNECTED;
-}
-
-void sync_time() {
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  Serial.printf("[ESP-%s] Waiting for NTP time sync...", deviceId);
-  struct tm timeinfo;
-  while (!getLocalTime(&timeinfo)) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.printf("\n[ESP-%s] Time Synced Successfully!\n", deviceId);
-}
-
-void reconnect() {
-  // Safety guard: Do not attempt connection without a broker IP
-  if (mqtt_server.length() == 0) return;
-
-  Serial.printf("[ESP-%s] Attempting MQTT connection...", deviceId);
-  String clientId = String(deviceId) + "-" + String(random(0xffff), HEX);
-  
-  if (client.connect(clientId.c_str())) {
-    Serial.printf("[ESP-%s] Connected to .NET Broker!\n", deviceId);
-  } else {
-    Serial.printf("[ESP-%s] Failed, rc=%d will retry in 5 seconds\n", deviceId, client.state());
-  }
-}
-
 // --- Main Loop ---
 void loop() {
-  // Only execute telemetry logic if WiFi is connected AND we have an MQTT server IP
+  // Sprawdzamy komendy z Avalonii przez Serial w każdym obiegu pętli głównej
+  check_serial_commands();
+
+  // Logika telemetryczna oraz utrzymanie połączenia z serwerem MQTT
   if (WiFi.status() == WL_CONNECTED && mqtt_server.length() > 0) {
     if (!client.connected()) {
       unsigned long now = millis();
@@ -241,7 +105,7 @@ void loop() {
       if (now - lastMsg >= 100) {
         lastMsg = now;
 
-        // Generate wave data based on device ID
+        // Generowanie fali danych na podstawie ID urządzenia
         float timeInSeconds = now / 1000.0;
         float generatedWeight = 0.0;
         if (strcmp(deviceId, "Left") == 0) {
@@ -249,23 +113,23 @@ void loop() {
         } else if (strcmp(deviceId, "Right") == 0) {
           generatedWeight = cos(timeInSeconds);
         } else {
-          generatedWeight = 10.0 + (random(0, 20000) / 100.0); // Fallback
+          generatedWeight = 10.0 + (random(0, 20000) / 100.0); 
         }
         Serial.printf("[ESP-%s] Generated Weight: %.2f kg\n", deviceId, generatedWeight);
 
-          // Format and print timestamp with milliseconds for serial output
-          struct tm timeinfo;
-          struct timeval tv;
-          gettimeofday(&tv, NULL);
-          localtime_r(&tv.tv_sec, &timeinfo);
-          char timeStringBuff[50];
-          strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
-          long milliseconds = tv.tv_usec / 1000;
-          Serial.printf("[ESP-%s] Timestamp: %s.%03ld\n", deviceId, timeStringBuff, milliseconds);
+        // Formatowanie i wysyłanie czasu z milisekundami
+        struct tm timeinfo;
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        localtime_r(&tv.tv_sec, &timeinfo);
+        char timeStringBuff[50];
+        strftime(timeStringBuff, sizeof(timeStringBuff), "%Y-%m-%d %H:%M:%S", &timeinfo);
+        long milliseconds = tv.tv_usec / 1000;
+        Serial.printf("[ESP-%s] Timestamp: %s.%03ld\n", deviceId, timeStringBuff, milliseconds);
 
         uint64_t timestamp = (uint64_t)tv.tv_sec;
 
-        // Build JSON payload
+        // Budowa paczki JSON
         JsonDocument doc;
         doc["deviceId"] = deviceId;
         doc["weight"] = generatedWeight;
@@ -279,4 +143,156 @@ void loop() {
       }
     }
   }
+  
+  // Niezbędne uśpienie dające czas stosowi USB na bezkonfliktową pracę
+  vTaskDelay(1 / portTICK_PERIOD_MS);
+}
+
+// --- Obsługa Komend przez Serial ---
+void check_serial_commands() {
+  if (!Serial) return;
+
+  while (Serial.available() > 0) {
+    char c = Serial.read();
+    
+    if (c == '\n' || c == '\r') {
+      inputBuffer.trim(); 
+      
+      if (inputBuffer.length() > 0) {
+        
+        // 1. Handshake
+        if (inputBuffer == "PING") {
+          Serial.println("START_APLIKACJA");
+          Serial.flush();
+        } 
+        
+        // 2. WiFi Configuration Command
+        else if (inputBuffer.startsWith("WIFI_CONFIG:")) {
+          int firstColon = inputBuffer.indexOf(':');
+          int secondColon = inputBuffer.indexOf(':', firstColon + 1);
+
+          if (firstColon > 0 && secondColon > firstColon) {
+            String newSsid = inputBuffer.substring(firstColon + 1, secondColon);
+            String newPass = inputBuffer.substring(secondColon + 1);
+
+            Serial.printf("[ESP-%s] Testing new WiFi Config... SSID: %s\n", deviceId, newSsid.c_str());
+            Serial.flush();
+
+            if (testWifiConnection(newSsid, newPass)) {
+              preferences.begin("wifi_creds", false);
+              preferences.putString("ssid", newSsid);
+              preferences.putString("password", newPass);
+              preferences.end();
+
+              Serial.printf("[ESP-%s] WIFI_CONFIRMED\n", deviceId);
+              Serial.flush();
+            } else {
+              Serial.printf("[ESP-%s] WIFI_FAILED\n", deviceId);
+              Serial.flush();
+            }
+          }
+        }
+        
+        // 3. MQTT Configuration Command
+        else if (inputBuffer.startsWith("MQTT_CONFIG:")) {
+          String newMqtt = inputBuffer.substring(12); 
+          newMqtt.trim();
+
+          if (newMqtt.length() > 0) {
+            Serial.printf("[ESP] Saving and applying new MQTT Broker... IP: %s\n", newMqtt.c_str());
+            Serial.flush();
+
+            preferences.begin("wifi_creds", false);
+            preferences.putString("mqtt_server", newMqtt);
+            preferences.end();
+
+            mqtt_server = newMqtt;
+            client.setServer(mqtt_server.c_str(), 1883);
+            
+            if (client.connected()) {
+              client.disconnect();
+            }
+
+            Serial.println("[ESP] MQTT_CONFIRMED");
+            Serial.flush();
+          }
+        }
+        
+        // 4. Device ID Configuration Command
+        else if (inputBuffer.startsWith("DEVICE_ID_CONFIG:")) {
+          String newDeviceId = inputBuffer.substring(17); 
+          newDeviceId.trim();
+
+          if (newDeviceId.length() > 0) {
+            Serial.printf("[ESP] Saving new Device ID: %s\n", newDeviceId.c_str());
+            Serial.flush();
+
+            preferences.begin("wifi_creds", false);
+            preferences.putString("device_id", newDeviceId);
+            preferences.end();
+
+            strlcpy(deviceId, newDeviceId.c_str(), sizeof(deviceId));
+            Serial.println("[ESP] DEVICE_ID_CONFIRMED");
+            Serial.flush();
+          }
+        }
+        
+        // 5. Bezpieczna komenda rozłączenia z wymuszonym restartem urządzenia
+        else if (inputBuffer == "DISCONNECT_CMD") {
+          Serial.println("[ESP] DISCONNECT_ACK");
+          Serial.flush();
+          
+          if (client.connected()) {
+            client.disconnect();
+          }
+          
+          // Czyszczenie danych sieci z NVS, by po restarcie nie łączył się sam
+          preferences.begin("wifi_creds", false);
+          preferences.putString("ssid", "");
+          preferences.putString("password", "");
+          preferences.end();
+          
+          vTaskDelay(500 / portTICK_PERIOD_MS); // Czas na zapis i wysłanie ACK przez port COM
+          
+          // Restart oczyszcza gniazdo i zapobiega blokowaniu portu COM w Windows
+          ESP.restart(); 
+        }
+        
+        inputBuffer = ""; // Czyszczenie bufora
+      }
+    } else {
+      inputBuffer += c; 
+    }
+  }
+}
+
+// --- Helper Functions ---
+bool testWifiConnection(String testSsid, String testPass) {
+  WiFi.disconnect();
+  vTaskDelay(100 / portTICK_PERIOD_MS);
+
+  WiFi.begin(testSsid.c_str(), testPass.c_str());
+
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    vTaskDelay(500 / portTICK_PERIOD_MS); // Bezpieczne czekanie bez zamrażania USB
+    attempts++;
+  }
+  return WiFi.status() == WL_CONNECTED;
+}
+
+void sync_time() {
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  struct tm timeinfo;
+  int timeout = 0;
+  while (!getLocalTime(&timeinfo) && timeout < 20) {
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
+    timeout++;
+  }
+}
+
+void reconnect() {
+  if (mqtt_server.length() == 0) return;
+  String clientId = String(deviceId) + "-" + String(random(0xffff), HEX);
+  client.connect(clientId.c_str());
 }

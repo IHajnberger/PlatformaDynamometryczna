@@ -24,7 +24,7 @@
                     BorderThickness="1" 
                     CornerRadius="16" 
                     Padding="30" 
-                    MaxWidth="550" 
+                    Width="500" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Top"
                     Margin="0,10,0,30">
@@ -99,15 +99,27 @@
                                 CornerRadius="8"
                                 Margin="0,15,0,0" 
                                 Click="ConnectButton_Click" />
-                        
-                        <Button Content="Zmień konfigurację / Resetuj" 
-                                HorizontalAlignment="Center" 
+    
+                        <Button Name="DisconnectButton" 
+                                Content="Rozłącz" 
                                 Classes="ModernCard"
-                                Padding="15,8"
-                                Foreground="Gray"
-                                FontSize="12"
-                                Margin="0,5,0,0"
-                                Click="ChangeWifiButton_Click" />
+                                Click="DisconnectButton_Click"
+                                Width="150"
+                                Height="40"
+                                Padding="0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center">
+    
+                            <Button.Styles>
+                                <Style Selector="Button.ModernCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                    <Setter Property="Background" Value="#1a1a1a"/> 
+                                    <Setter Property="BorderBrush" Value="#E53935"/> 
+                                </Style>
+                            </Button.Styles>
+                        </Button>
+
                     </StackPanel>
                     
                 </StackPanel>

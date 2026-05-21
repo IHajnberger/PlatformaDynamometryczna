@@ -20,9 +20,11 @@ public partial class DataView : UserControl, IDisposable
     
     private readonly ObservableCollection<double> _leftValues = new();
     private readonly ObservableCollection<double> _rightValues = new();
-    private readonly ObservableCollection<double> _sumValues = new();
 
-    public ObservableCollection<ISeries> ChartSeries { get; set; }
+    // Dwie niezależne kolekcje serii dla osobnych wykresów
+    public ObservableCollection<ISeries> LeftChartSeries { get; set; }
+    public ObservableCollection<ISeries> RightChartSeries { get; set; }
+    
     public Axis[] XAxes { get; set; }
     public Axis[] YAxes { get; set; }
     public SolidColorPaint LegendPaint { get; set; } = new(SKColors.White);
@@ -34,31 +36,31 @@ public partial class DataView : UserControl, IDisposable
 
         BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
 
-        // KROK 1: ULTRA-PŁYNNE GRADIENTY I EMISJA ŚWIATŁA (React / Tailwind Style)
         var leftColor = SKColor.Parse("#3b82f6");
         var rightColor = SKColor.Parse("#f59e0b");
-        var sumColor = SKColor.Parse("#10b981");
 
-        ChartSeries = new ObservableCollection<ISeries>
+        // SERIA DLA LEWEGO WYKRESU (Niebieska)
+        LeftChartSeries = new ObservableCollection<ISeries>
         {
             new LineSeries<double>
             {
                 Name = "Left Scale",
                 Values = _leftValues,
-                GeometrySize = 0,                 // Zero punktów (czysta, gładka wstęga)
-                LineSmoothness = 0.75,            // Wyższy współczynnik wygładzania dla super opływowych krzywych
-                Stroke = new SolidColorPaint(leftColor) { StrokeThickness = 4 }, // Grubsza, wyraźniejsza linia
-                
-                // Nowoczesny, zanikający gradient pod wykresem (Area Chart)
+                GeometrySize = 0,
+                LineSmoothness = 0.75,
+                Stroke = new SolidColorPaint(leftColor) { StrokeThickness = 4 },
                 Fill = new LinearGradientPaint(
                     new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
-                    new SKPoint(0.5f, 0),         // Początek gradientu (góra)
-                    new SKPoint(0.5f, 1)),        // Koniec gradientu (dół)
-                
-                // Płynna, dynamiczna fizyka ruchu (Easing)
+                    new SKPoint(0.5f, 0),
+                    new SKPoint(0.5f, 1)),
                 AnimationsSpeed = TimeSpan.FromMilliseconds(350),
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
-            },
+            }
+        };
+
+        // SERIA DLA PRAWEGO WYKRESU (Pomarańczowa)
+        RightChartSeries = new ObservableCollection<ISeries>
+        {
             new LineSeries<double>
             {
                 Name = "Right Scale",
@@ -72,33 +74,17 @@ public partial class DataView : UserControl, IDisposable
                     new SKPoint(0.5f, 1)),
                 AnimationsSpeed = TimeSpan.FromMilliseconds(350),
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
-            },
-            new LineSeries<double>
-            {
-                Name = "Sum",
-                Values = _sumValues,
-                GeometrySize = 0,
-                LineSmoothness = 0.75,
-                // Linia sumy jako elegancka, przerywana linia (Dash Path Effect)
-                Stroke = new SolidColorPaint(sumColor) 
-                { 
-                    StrokeThickness = 2,
-                    PathEffect = new DashEffect(new float[] { 6, 6 }) // 6px kreski, 6px przerwy
-                },
-                Fill = null,
-                AnimationsSpeed = TimeSpan.FromMilliseconds(350),
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
             }
         };
 
-        // KROK 2: MINIMALISTYCZNE, NIEODWRACAJĄCE UWAGI OSI
+        // OSI I SIATKA (Identyczne, minimalistyczne reguły jak wcześniej)
         XAxes = new Axis[] {
             new Axis {
-                TextSize = 0, // Ukryte podpisy osi X dla idealnej płynności strumienia danych
+                TextSize = 0,
                 SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) 
                 { 
                     StrokeThickness = 1,
-                    PathEffect = new DashEffect(new float[] { 4, 4 }) // Kropkowane linie siatki (bardzo modernistyczne)
+                    PathEffect = new DashEffect(new float[] { 4, 4 })
                 }
             }
         };
@@ -114,8 +100,6 @@ public partial class DataView : UserControl, IDisposable
 
         DataContext = this;
 
-        // KROK 3: ZWIĘKSZENIE CZĘSTOTLIWOŚCI PRÓBKOWANIA DLA "FLUID EFFECT"
-        // Zmniejszamy interwał z 40ms do 30ms, aby wykres był bardziej dynamiczny
         _renderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
         _renderTimer.Tick += RenderTimer_Tick;
 
@@ -136,7 +120,7 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        // Dequeue danych z brokera MQTT
+        // Dequeue paczek tylko dla urządzeń 1 i 2 (suma usunięta)
         while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
         {
             _leftValues.Add(data.Weight);
@@ -145,16 +129,10 @@ public partial class DataView : UserControl, IDisposable
         {
             _rightValues.Add(data.Weight);
         }
-        while (MqttService.Instance.SumQueue.TryDequeue(out var data))
-        {
-            _sumValues.Add(data.Weight);
-        }
 
-        // Zwiększamy bufor wyświetlania z 50 do 70 punktów, 
-        // dzięki czemu fala płynie wolniej i bardziej dostojnie (fluid effect)
+        // Czyszczenie starego bufora (utrzymujemy fluid effect do 70 próbek)
         int maxPoints = 70;
         while (_leftValues.Count > maxPoints) _leftValues.RemoveAt(0);
         while (_rightValues.Count > maxPoints) _rightValues.RemoveAt(0);
-        while (_sumValues.Count > maxPoints) _sumValues.RemoveAt(0);
     }
 }

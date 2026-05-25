@@ -43,7 +43,7 @@ public partial class DataView : UserControl, IDisposable
     private readonly Axis _rightXAxis;
     private const int ViewWindowSize = 100; // Rozmiar widocznego okna punktów
 
-    // Flagi sterujące trybami automatycznego przewijania
+    // Domyślnie aplikacja startuje w trybie Live (HistoryMode = false)
     private bool _leftIsHistoryMode = false;
     private bool _rightIsHistoryMode = false;
     private bool _isUpdatingFromScroll = false;
@@ -58,7 +58,7 @@ public partial class DataView : UserControl, IDisposable
         var leftColor = SKColor.Parse("#3b82f6");
         var rightColor = SKColor.Parse("#f59e0b");
 
-        // Przywrócenie ustawień animacji dających stuprocentową płynność
+        // Przywrócenie płynnych animacji fali z CubicOut
         LeftChartSeries = new ObservableCollection<ISeries>
         {
             new LineSeries<double>
@@ -121,15 +121,15 @@ public partial class DataView : UserControl, IDisposable
 
         DataContext = this;
 
-        // Spięcie suwaków ze zdarzeniami pionowymi
+        // Rejestracja zdarzeń suwaków dolnych
         LeftScrollBar.Scroll += LeftScrollBar_Scroll;
         RightScrollBar.Scroll += RightScrollBar_Scroll;
 
-        // Dynamiczne wykrywanie puszczenia myszy/dotyku nad wykresami, aby natychmiast sprawdzić czy wrócić do Live
+        // KLUCZOWE: Sprawdzamy stan granicy dopiero PO puszczeniu myszki/palca (koniec interakcji użytkownika)
         LeftChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_leftXAxis, ref _leftIsHistoryMode, _leftValues.Count);
         RightChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_rightXAxis, ref _rightIsHistoryMode, _rightValues.Count);
 
-        // HUD - Przezroczystość pasków przewijania pojawiająca się na żądanie
+        // HUD - Pokazywanie i ukrywanie pasków przewijania (efekt podpowiedzi)
         LeftChartContainer.PointerEntered += (s, e) => LeftScrollBar.Opacity = 0.8;
         LeftChartContainer.PointerExited += (s, e) => LeftScrollBar.Opacity = 0;
         RightChartContainer.PointerEntered += (s, e) => RightScrollBar.Opacity = 0.8;
@@ -155,7 +155,7 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        // Konsumujemy pakiety bezpośrednio z MQTT do serii LiveCharts
+        // Pobieranie pakietów z MQTT
         while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
         {
             _leftValues.Add(data.Weight);
@@ -167,7 +167,7 @@ public partial class DataView : UserControl, IDisposable
             _rightBuffer.Add(data);
         }
 
-        // Czyszczenie starej historii sesji z zachowaniem bezpiecznego bufora w RAM
+        // Bezpieczny limit punktów trzymanych w pamięci wykresu
         int maxCapacity = 4000;
         while (_leftValues.Count > maxCapacity) _leftValues.RemoveAt(0);
         while (_rightValues.Count > maxCapacity) _rightValues.RemoveAt(0);
@@ -175,11 +175,11 @@ public partial class DataView : UserControl, IDisposable
         while (_leftBuffer.Count > BufferSize) _leftBuffer.RemoveAt(0);
         while (_rightBuffer.Count > BufferSize) _rightBuffer.RemoveAt(0);
 
-        // --- OBSŁUGA AUTOMATYCZNEGO PRZESUWANIA OSI W TRYBIE LIVE ---
-        UpdateAxisAndScrollBar(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
-        UpdateAxisAndScrollBar(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
+        // --- MANIPULACJA OSIAMI I SUWAKAMI ---
+        ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
+        ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
 
-        // Obliczenia statystyk biomechanicznych
+        // Wyliczanie statystyk biomechanicznych
         _updateCounter++;
         if (_updateCounter >= 10 && (_leftBuffer.Count > 0 || _rightBuffer.Count > 0))
         {
@@ -189,7 +189,7 @@ public partial class DataView : UserControl, IDisposable
         }
     }
 
-    private void UpdateAxisAndScrollBar(int totalPoints, Axis axis, ScrollBar scrollBar, ref bool isHistoryMode)
+    private void ProcessAxisTick(int totalPoints, Axis axis, ScrollBar scrollBar, ref bool isHistoryMode)
     {
         if (totalPoints <= ViewWindowSize) return;
 
@@ -197,13 +197,14 @@ public partial class DataView : UserControl, IDisposable
         scrollBar.Maximum = maxScrollValue;
         scrollBar.ViewportSize = ViewWindowSize;
 
-        // Jeśli oś została przesunięta myszką w lewo o więcej niż 5 punktów od krawędzi, aktywujemy tryb historii
-        if (axis.MaxLimit < (totalPoints - 5))
+        // POPRAWKA LOGICZNA: Podczas trwania ticku sprawdzamy, czy oś uciekła od prawej granicy.
+        // Jeśli MaxLimit jest mniejszy niż totalPoints (z tolerancją), użytkownik cofnął się w tył -> włączamy tryb historii.
+        if (axis.MaxLimit < (totalPoints - 3))
         {
             isHistoryMode = true;
         }
 
-        // Jeśli jesteśmy w trybie Live (nie przeglądamy historii), stabilnie i płynnie aktualizujemy położenie
+        // JESTEŚMY NA PRAWEJ KRAWĘDZI (Tryb Live): Wykres sam płynnie nadąża za nowymi próbkami
         if (!isHistoryMode)
         {
             _isUpdatingFromScroll = true;
@@ -214,22 +215,31 @@ public partial class DataView : UserControl, IDisposable
         }
         else if (!_isUpdatingFromScroll)
         {
-            // Jeśli użytkownik przesuwa myszką po wykresie, aktualizujemy pozycję kciuka dolnego suwaka w czasie rzeczywistym
+            // JESTEŚMY W HISTORII (Zamrożenie): C# nie dotyka limitów osi wykresu! 
+            // Jedynie aktualizuje pozycję kciuka dolnego suwaka, dopasowując go do miejsca, w które użytkownik przesunął wykres myszką.
             scrollBar.Value = axis.MinLimit ?? 0;
         }
     }
 
-    // AUTOMATYCZNY POWRÓT DO LIVE PO DOSZEDŁU DO PRAWEJ GRANICY
+    // TA METODA ODPOWIADA ZA POWRÓT DO LIVE: Wywoływana dopiero w momencie puszczenia przycisku myszy (PointerReleased)
     private void CheckIfReturnToLive(Axis axis, ref bool isHistoryMode, int totalPoints)
     {
         if (totalPoints <= ViewWindowSize) return;
 
-        // Powrót: Jeśli maksymalny widok osi zostanie dociągnięty do krawędzi danych, włączamy autoscroll live
+        // Jeśli po zakończeniu przeciągania myszką prawa krawędź osi (MaxLimit) dotyka lub przekracza koniec danych,
+        // wyłączamy tryb historii i natychmiast przywracamy autoscroll.
         if (axis.MaxLimit >= (totalPoints - 5))
         {
             isHistoryMode = false;
             StatusText.Text = "Status: Pobieranie danych z platform...";
             StatusText.Foreground = Brushes.Green;
+        }
+        else
+        {
+            // Jeśli użytkownik puścił myszkę głęboko w historii, wykres zostaje zamrożony w tym miejscu.
+            isHistoryMode = true;
+            StatusText.Text = "Status: Przeglądanie danych historycznych sesji.";
+            StatusText.Foreground = Brushes.Cyan;
         }
     }
 

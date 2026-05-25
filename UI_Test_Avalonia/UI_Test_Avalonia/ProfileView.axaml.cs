@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO.Ports;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Media;
+
+namespace UI_Test_Avalonia;
+/*
+wip
+*/
+public partial class ProfileView : UserControl
+{
+    public event EventHandler? BackClicked;
+
+    public ProfileView()
+    {
+        InitializeComponent();
+
+        BackButton.Click += (sender, e) =>
+        {
+            BackClicked?.Invoke(this, EventArgs.Empty);
+        };
+    }
+}

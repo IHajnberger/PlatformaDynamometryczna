@@ -5,8 +5,7 @@ namespace UI_Test_Avalonia;
 
 public partial class MainWindow : Window
 {
-    // Zmienna pomocnicza, jeśli będziesz potrzebować roli w innych częściach aplikacji
-    private string _currentUserRole = "Guest"; 
+    private string _currentUserRole = "Guest";
 
     public MainWindow()
     {
@@ -17,43 +16,68 @@ public partial class MainWindow : Window
     private void ShowLoginScreen()
     {
         var loginView = new LoginView();
-        
-        // Ekran logowania zwraca nam rolę: "Physiotherapist" lub "Patient"
+
         loginView.OnLoginSuccess += (role) =>
         {
-            _currentUserRole = role; // Zapisujemy rolę globalnie w oknie
-            ShowMainApp(role);       // Przekazujemy rolę do głównego menu
+            _currentUserRole = role;
+            ShowMainApp(role);
         };
 
         MainContentArea.Content = loginView;
     }
 
-    // Nowa wersja metody akceptująca parametr roli
     private void ShowMainApp(string role)
     {
-        // Przekazujemy rolę wprost do konstruktora HomeView
-        var homeView = new HomeView(role);
+        var homeView = new HomeView(role); // ← przekaż rolę
 
-        homeView.OnLiveDataClicked += () =>
+        homeView.TestClicked += (s, e) =>
         {
             var dataView = new DataView();
-            // Przycisk wstecz wraca do głównego menu pamiętając aktualną rolę
-            dataView.BackClicked += (s, e) => ShowMainApp(_currentUserRole); 
+            dataView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
             MainContentArea.Content = dataView;
         };
 
-        homeView.OnConfigureWifiClicked += () =>
+        homeView.WifiClicked += (s, e) =>
         {
             var configView = new ConfigureWifiView();
-            // Przycisk wstecz wraca do głównego menu pamiętając aktualną rolę
             configView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
             MainContentArea.Content = configView;
         };
-        homeView.OnLogoutClicked += () =>
+
+        homeView.PatientsClicked += (s, e) =>
         {
-            _currentUserRole = "Guest"; // Resetujemy uprawnienia w oknie
-            ShowLoginScreen();          // Podmieniamy zawartość z powrotem na ekran logowania
+            var patientsView = new PatientsListView();
+            patientsView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            MainContentArea.Content = patientsView;
         };
+
+        homeView.WikiClicked += (s, e) =>
+        {
+            var wikiView = new Wikipedia();
+            wikiView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            MainContentArea.Content = wikiView;
+        };
+
+        homeView.AboutClicked += (s, e) =>
+        {
+            var aboutView = new About();
+            aboutView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            MainContentArea.Content = aboutView;
+        };
+
+        homeView.ProfileClicked += (s, e) =>
+        {
+            var profileView = new ProfileView();
+            profileView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            MainContentArea.Content = profileView;
+        };
+
+        homeView.LogoutClicked += (s, e) =>
+        {
+            _currentUserRole = "Guest";
+            ShowLoginScreen();
+        };
+
         MainContentArea.Content = homeView;
     }
 }

@@ -30,4 +30,10 @@
     <!-- MQTT -->
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="PatientsListView.axaml.cs">
+      <DependentUpon>PatientsListView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>

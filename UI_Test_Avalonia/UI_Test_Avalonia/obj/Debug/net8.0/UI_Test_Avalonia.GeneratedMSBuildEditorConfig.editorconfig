@@ -28,6 +28,9 @@ build_property.EnableGeneratedComInterfaceComImportInterop =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
+[C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/About.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
@@ -44,4 +47,13 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/MainWindow.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/PatientsListView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/ProfileView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/mmule/Documents/GitHub/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/Wikipedia.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

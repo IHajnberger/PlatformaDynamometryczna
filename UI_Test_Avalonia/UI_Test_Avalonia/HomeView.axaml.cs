@@ -1,44 +1,100 @@
 using System;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 
 namespace UI_Test_Avalonia;
 
 public partial class HomeView : UserControl
 {
-    public event Action? OnLiveDataClicked;
-    public event Action? OnConfigureWifiClicked;
-    public event Action? OnLogoutClicked; // NOWOŚĆ: Zdarzenie wylogowania
+    public event EventHandler? TestClicked;
+    public event EventHandler? PatientsClicked;
+    public event EventHandler? WifiClicked;
+    public event EventHandler? WikiClicked;
+    public event EventHandler? AboutClicked;
+    public event EventHandler? ProfileClicked;
+    public event EventHandler? LogoutClicked;
 
-    public HomeView(string role)
+    private readonly string _role;
+
+    public HomeView(string role = "Physiotherapist")
     {
         InitializeComponent();
+        _role = role;
 
-        // Podpięcie dotychczasowych przycisków
-        var liveDataBtn = this.FindControl<Button>("TileTest");
-        if (liveDataBtn != null) liveDataBtn.Click += (s, e) => OnLiveDataClicked?.Invoke();
+        TileTest.Click += (s, e) => TestClicked?.Invoke(this, EventArgs.Empty);
+        TilePatients.Click += (s, e) => PatientsClicked?.Invoke(this, EventArgs.Empty);
+        TileWifi.Click += (s, e) => WifiClicked?.Invoke(this, EventArgs.Empty);
+        TileWiki.Click += (s, e) => WikiClicked?.Invoke(this, EventArgs.Empty);
+        TileAbout.Click += (s, e) => AboutClicked?.Invoke(this, EventArgs.Empty);
+        TileProfile.Click += (s, e) => ProfileClicked?.Invoke(this, EventArgs.Empty);
+        TileLogout.Click += (s, e) => LogoutClicked?.Invoke(this, EventArgs.Empty);
 
-        var configWifiBtn = this.FindControl<Button>("TileWifi");
-        if (configWifiBtn != null) configWifiBtn.Click += (s, e) => OnConfigureWifiClicked?.Invoke();
+        // Subskrybuj event dopiero po InitializeComponent
+        PatientService.Instance.ActivePatientChanged += OnActivePatientChanged;
 
-        // NOWOŚĆ: Podpięcie przycisku wylogowania
-        var logoutBtn = this.FindControl<Button>("TileLogout");
-        if (logoutBtn != null)
-        {
-            logoutBtn.Click += (s, e) => OnLogoutClicked?.Invoke();
-        }
+        // Pierwsze odświeżenie
+        UpdateActivePatientLabel();
 
-        ApplyPermissions(role);
+        ApplyRoleRestrictions();
     }
 
-    private void ApplyPermissions(string role)
+    private void OnActivePatientChanged(object? sender, EventArgs e)
     {
-        var tilePatients = this.FindControl<Button>("TilePatients");
-        var tileWifi = this.FindControl<Button>("TileWifi");
+        // Zawsze aktualizuj UI na wątku UI
+        Dispatcher.UIThread.Post(UpdateActivePatientLabel);
+    }
 
-        if (role == "Patient")
+    private void ApplyRoleRestrictions()
+    {
+        if (_role == "Patient")
         {
-            if (tilePatients != null) tilePatients.IsVisible = false;
-            if (tileWifi != null) tileWifi.IsVisible = false;
+            TileTest.IsVisible = false;
+            TileWifi.IsVisible = false;
+            PatientSelectionPanel.IsVisible = false;
+
         }
+    }
+
+    private void UpdateActivePatientLabel()
+    {
+        var p = PatientService.Instance.ActivePatient;
+        ActivePatientLabel.Text = p != null ? p.FullName : "Nie wybrano pacjenta";
+        ClearPatientButton.IsVisible = p != null;
+    }
+
+    private void PatientSearchBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        var query = PatientSearchBox.Text ?? "";
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            PatientPopup.IsOpen = false;
+            return;
+        }
+
+        var results = PatientService.Instance.Patients
+            .Where(p => p.FullName.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        PatientListBox.ItemsSource = results;
+        PatientPopup.IsOpen = results.Count > 0;
+    }
+
+    private void PatientListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (PatientListBox.SelectedItem is Patient patient)
+        {
+            PatientService.Instance.SetActivePatient(patient);
+            PatientSearchBox.Text = "";
+            PatientPopup.IsOpen = false;
+            PatientListBox.SelectedItem = null;
+        }
+    }
+
+    private void ClearPatientButton_Click(object? sender, RoutedEventArgs e)
+    {
+        PatientService.Instance.SetActivePatient(null);
     }
 }

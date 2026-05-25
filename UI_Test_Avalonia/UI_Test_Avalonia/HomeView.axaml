@@ -3,9 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:fa="using:FluentAvalonia.UI.Controls"
+             xmlns:local="clr-namespace:UI_Test_Avalonia"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="UI_Test_Avalonia.HomeView">
-
+               
     <UserControl.Styles>
         <Style Selector="Button.DashboardCard">
             <Setter Property="Background" Value="#2d2d2d"/>
@@ -23,16 +24,13 @@
                 </Transitions>
             </Setter>
         </Style>
-
         <Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#373737"/>
             <Setter Property="BorderBrush" Value="#4f4f4f"/>
         </Style>
-        
         <Style Selector="Button.DashboardCard:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.02)"/>
         </Style>
-
         <Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="#252525"/>
             <Setter Property="BorderBrush" Value="#3b82f6"/>
@@ -44,17 +42,17 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="40" Spacing="30" MaxWidth="1100" HorizontalAlignment="Stretch">
-            
+
+            <!-- Nagłówek + wyloguj -->
             <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
                 <StackPanel Grid.Column="0" Spacing="5">
                     <TextBlock Text="Główny Pulpit" FontSize="32" FontWeight="Bold" Foreground="White"/>
                     <TextBlock Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
                 </StackPanel>
-    
-                <Button Grid.Column="1" 
-                        Name="TileLogout" 
-                        VerticalAlignment="Center" 
-                        Padding="14,10" 
+                <Button Grid.Column="1"
+                        Name="TileLogout"
+                        VerticalAlignment="Center"
+                        Padding="14,10"
                         Classes="DashboardCard"
                         Theme="{StaticResource TransparentButton}"
                         CornerRadius="8">
@@ -64,10 +62,70 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            
 
+            <!-- Wybór pacjenta -->
+            <Border x:Name="PatientSelectionPanel" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="20">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <fa:SymbolIcon Symbol="People" Foreground="#10b981" FontSize="24"/>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Aktywny pacjent" FontSize="12" Foreground="Gray"/>
+                            <TextBlock x:Name="ActivePatientLabel" Text="Nie wybrano pacjenta" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Column="1" Margin="30,0" VerticalAlignment="Center">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox x:Name="PatientSearchBox"
+                                     Watermark="Wyszukaj pacjenta..."
+                                     Height="38"
+                                     VerticalContentAlignment="Center"
+                                     TextChanged="PatientSearchBox_TextChanged">
+                                <TextBox.InnerLeftContent>
+                                    <fa:SymbolIcon Symbol="Find" Margin="10,0,0,0" Foreground="Gray"/>
+                                </TextBox.InnerLeftContent>
+                            </TextBox>
+
+                            <Popup x:Name="PatientPopup"
+                               PlacementTarget="{Binding ElementName=PatientSearchBox}"
+                               Placement="Bottom"
+                               IsLightDismissEnabled="True">
+                                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="8" MaxHeight="200">
+                                    <ListBox x:Name="PatientListBox"
+                                             Background="Transparent"
+                                             ItemsSource="{x:Null}"
+                                             SelectionChanged="PatientListBox_SelectionChanged">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="local:Patient">
+                                                <TextBlock Text="{Binding FullName}" Foreground="White" Padding="10,8"/>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+
+                    <Button Grid.Column="2"
+                            x:Name="ClearPatientButton"
+                            Classes="ModernCard"
+                            Padding="10,8"
+                            VerticalAlignment="Center"
+                            IsVisible="False"
+                            Click="ClearPatientButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fa:SymbolIcon Symbol="Dismiss" FontSize="14" Foreground="#ef4444"/>
+                            <TextBlock Text="Wyczyść" Foreground="#ef4444" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+
+                </Grid>
+            </Border>
+
+            <!-- Kafelki -->
             <UniformGrid Columns="3" Rows="2" HorizontalAlignment="Stretch">
-                
+
                 <Button Name="TileTest" Classes="DashboardCard" Margin="10" Height="170">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
                         <fa:SymbolIcon Symbol="Play" FontSize="40" Foreground="#3b82f6"/>
@@ -108,8 +166,15 @@
                     </StackPanel>
                 </Button>
 
+                <Button Name="TileProfile" Classes="DashboardCard" Margin="10" Height="170">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
+                        <fa:SymbolIcon Symbol="Contact" FontSize="40" Foreground="#06b6d4"/>
+                        <TextBlock Text="Mój Profil" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock Text="Ustawienia konta fizjoterapeuty" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
             </UniformGrid>
         </StackPanel>
     </ScrollViewer>
-    
 </UserControl>

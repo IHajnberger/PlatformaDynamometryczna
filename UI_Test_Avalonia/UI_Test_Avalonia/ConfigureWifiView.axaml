@@ -88,7 +88,7 @@
                                 </TextBox.InnerLeftContent>
                             </TextBox>
                         </StackPanel>
-
+                        
                         <Button Content="Wyślij konfigurację do urządzeń" 
                                 Classes="ModernCard"
                                 Padding="15,12"
@@ -111,7 +111,7 @@
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"
                                 VerticalContentAlignment="Center">
-    
+                        
                             <Button.Styles>
                                 <Style Selector="Button.ModernCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
                                     <Setter Property="Background" Value="#1a1a1a"/> 

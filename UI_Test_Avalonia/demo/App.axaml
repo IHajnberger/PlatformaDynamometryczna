@@ -1,0 +1,60 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             x:Class="UI_Test_Avalonia.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <Style Selector="Button.ModernCard /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#3a3a3a"/>
+            <Setter Property="BorderBrush" Value="#4a4a4a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        
+        <Style Selector="Button.ModernCard">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12"/>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.ModernCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+        </Style>
+        <Style Selector="Button.ModernCard:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.01)"/>
+        </Style>
+
+        <Style Selector="Button.ModernCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1a1a1a"/>
+            <Setter Property="BorderBrush" Value="#3b82f6"/>
+        </Style>
+        <Style Selector="Button.ModernCard:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.98)"/>
+        </Style>
+
+        <Style Selector="Button.ModernCard.Accent /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#354a70"/>
+            <Setter Property="BorderBrush" Value="#3b82f6"/>
+        </Style>
+
+        <Style Selector="Button.ModernCard.Accent:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#253550"/>
+            <Setter Property="BorderBrush" Value="#2563eb"/>
+        </Style>
+
+        <Style Selector="Button.ModernCard.Accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#0f172a"/> <Setter Property="BorderBrush" Value="#3b82f6"/> </Style>
+        
+    </Application.Styles>
+</Application>

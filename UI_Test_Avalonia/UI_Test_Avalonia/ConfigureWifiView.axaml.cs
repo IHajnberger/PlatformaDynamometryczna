@@ -20,6 +20,7 @@ public partial class ConfigureWifiView : UserControl
     public event EventHandler? BackClicked;
 
     private readonly List<SerialPort> _espPorts = new();
+    private CancellationTokenSource? _debugReaderCts;
 
     public ConfigureWifiView()
     {
@@ -33,6 +34,7 @@ public partial class ConfigureWifiView : UserControl
 
         DetachedFromVisualTree += (s, e) => 
         {
+            _debugReaderCts?.Cancel();
             foreach (var port in _espPorts)
             {
                 port.Close();
@@ -48,6 +50,7 @@ public partial class ConfigureWifiView : UserControl
         StatusTextBlock.Foreground = Brushes.Orange;
         InputPanel.IsEnabled = false;
 
+        _debugReaderCts?.Cancel();
         foreach (var port in _espPorts)
         {
             port.Close();
@@ -65,6 +68,9 @@ public partial class ConfigureWifiView : UserControl
             StatusTextBlock.Foreground = Brushes.Green;
             InputPanel.IsEnabled = true;
             MqttIpTextBox.Text = GetLocalIPAddress();
+            
+            _debugReaderCts = new CancellationTokenSource();
+            _ = Task.Run(() => ReadSerialData(_debugReaderCts.Token));
         }
         else
         {
@@ -126,6 +132,31 @@ public partial class ConfigureWifiView : UserControl
             NextPort:;
         }
         return foundPorts;
+    }
+
+    private async Task ReadSerialData(CancellationToken token)
+    {
+        Debug.WriteLine($"[Debug Reader] Starting background reader for {_espPorts.Count} ports.");
+        while (!token.IsCancellationRequested)
+        {
+            foreach (var port in _espPorts)
+            {
+                try
+                {
+                    if (port.IsOpen && port.BytesToRead > 0)
+                    {
+                        var data = port.ReadExisting();
+                        Debug.Write($"[ESP32 {port.PortName}] {data}");
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore errors, port might be closed temporarily
+                }
+            }
+            await Task.Delay(50, token);
+        }
+        Debug.WriteLine("[Debug Reader] Background reader stopped.");
     }
 
     private void ChangeWifiButton_Click(object? sender, RoutedEventArgs e)
@@ -203,6 +234,33 @@ public partial class ConfigureWifiView : UserControl
     }
 }
     
+    private async void TareButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_espPorts.Count == 0)
+        {
+            StatusTextBlock.Text = "Status: No ESPs found. Please scan again.";
+            StatusTextBlock.Foreground = Brushes.Red;
+            return;
+        }
+
+        StatusTextBlock.Text = "Status: Taring scales... Do not apply weight.";
+        StatusTextBlock.Foreground = Brushes.Orange;
+
+        var tasks = _espPorts.Select(port => SendCommandAsync(port, "TARE\n", "Taring complete", "TARE_FAILED", 5));
+        var results = await Task.WhenAll(tasks);
+
+        if (results.All(r => r == "SUCCESS"))
+        {
+            StatusTextBlock.Text = "Status: All scales tared successfully.";
+            StatusTextBlock.Foreground = Brushes.Green;
+        }
+        else
+        {
+            StatusTextBlock.Text = "Status: One or more scales failed to tare.";
+            StatusTextBlock.Foreground = Brushes.Red;
+        }
+    }
+    
     private async void ConnectButton_Click(object? sender, RoutedEventArgs e)
     {
         if (_espPorts.Count == 0)
@@ -227,6 +285,9 @@ public partial class ConfigureWifiView : UserControl
         StatusTextBlock.Foreground = Brushes.Orange;
         InputPanel.IsEnabled = false;
 
+        // Stop the debug reader BEFORE sending config commands
+        _debugReaderCts?.Cancel();
+
         int successCount = 0;
         var tasks = _espPorts.Select(port => ConfigureDeviceAsync(port, ssid, password, mqttIp));
         var results = await Task.WhenAll(tasks);
@@ -246,6 +307,10 @@ public partial class ConfigureWifiView : UserControl
 
         StatusTextBlock.Text = $"Configuration complete. Successfully configured {successCount} out of {_espPorts.Count} devices.";
         StatusTextBlock.Foreground = successCount == _espPorts.Count ? Brushes.Green : Brushes.OrangeRed;
+        
+        // Restart the debug reader after configuration is finished
+        _debugReaderCts = new CancellationTokenSource();
+        _ = Task.Run(() => ReadSerialData(_debugReaderCts.Token));
     }
 
     private async Task<(string portName, bool success)> ConfigureDeviceAsync(SerialPort port, string ssid, string password, string mqttIp)

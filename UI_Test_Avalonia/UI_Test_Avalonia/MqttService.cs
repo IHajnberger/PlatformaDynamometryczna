@@ -21,13 +21,9 @@ public sealed class MqttService
     
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device1Queue { get; } = new();
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device2Queue { get; } = new();
-    public ConcurrentQueue<(double Weight, DateTime Timestamp)> SumQueue { get; } = new();
 
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
     
-    private double _lastWeight1 = 0;
-    private double _lastWeight2 = 0;
-
     private string deviceOneId = "Left";
     private string deviceTwoId = "Right";
     private MqttService()
@@ -55,6 +51,7 @@ public sealed class MqttService
 
             _mqttServer.InterceptingPublishAsync += e =>
             {
+                Debug.WriteLine($"[MqttService] InterceptingPublishAsync fired for client {e.ClientId}.");
                 var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
                 var topic = e.ApplicationMessage.Topic;
                 
@@ -68,27 +65,32 @@ public sealed class MqttService
                         
                         if (document.RootElement.TryGetProperty("deviceId", out var idElement) && 
                             document.RootElement.TryGetProperty("weight", out var weightElement) &&
-                            document.RootElement.TryGetProperty("timestamp", out var timestampElement))
+                            document.RootElement.TryGetProperty("timestamp_s", out var timestampSElement) &&
+                            document.RootElement.TryGetProperty("timestamp_ms", out var timestampMsElement))
                         {
                             var deviceId = idElement.GetString();
-                            var weight = weightElement.GetDouble();
-                            var timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampElement.GetInt64()).DateTime.ToLocalTime();
+                            var weight = weightElement.GetDouble() * -1; // Invert the signal here
+                            
+                            long epochSeconds = timestampSElement.GetInt64();
+                            int milliseconds = timestampMsElement.GetInt32();
+                            var timestamp = DateTimeOffset.FromUnixTimeSeconds(epochSeconds).DateTime.ToLocalTime().AddMilliseconds(milliseconds);
                             
                             LastPacketTime = DateTime.Now;
 
                             if (deviceId == deviceOneId)
                             {
-                                _lastWeight1 = weight;
                                 Device1Queue.Enqueue((weight, timestamp));
+                                Debug.WriteLine($"[MqttService] Enqueued {weight}kg for Left device.");
                             }
                             else if (deviceId == deviceTwoId)
                             {
-                                _lastWeight2 = weight;
                                 Device2Queue.Enqueue((weight, timestamp));
+                                Debug.WriteLine($"[MqttService] Enqueued {weight}kg for Right device.");
                             }
-                            
-                            var sum = _lastWeight1 + _lastWeight2;
-                            SumQueue.Enqueue((sum, DateTime.Now));
+                        }
+                        else
+                        {
+                            Debug.WriteLine("[MqttService] JSON payload was missing required properties (deviceId, weight, timestamp_s, timestamp_ms).");
                         }
                     }
                     catch (Exception ex)

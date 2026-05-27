@@ -99,6 +99,21 @@
                                 CornerRadius="8"
                                 Margin="0,15,0,0" 
                                 Click="ConnectButton_Click" />
+                                
+                        <Separator Background="#3d3d3d" Margin="0,5"/>
+                        
+                        <TextBlock Text="Krok 3: Kalibracja" FontWeight="SemiBold" FontSize="15" Foreground="White"/>
+                        <TextBlock Text="Upewnij się, że na platformach nie ma żadnego ciężaru." FontSize="12" Foreground="LightGray" TextWrapping="Wrap"/>
+                        
+                        <Button Content="Taruj wagi (Zero)" 
+                                Classes="ModernCard"
+                                Padding="15,12"
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                FontWeight="Bold"
+                                CornerRadius="8"
+                                Click="TareButton_Click" />
     
                         <Button Name="DisconnectButton" 
                                 Content="Rozłącz" 
@@ -107,6 +122,7 @@
                                 Width="150"
                                 Height="40"
                                 Padding="0"
+                                Margin="0,15,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 HorizontalContentAlignment="Center"

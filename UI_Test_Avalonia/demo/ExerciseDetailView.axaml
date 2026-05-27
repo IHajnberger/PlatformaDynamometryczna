@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="UI_Test_Avalonia.ExerciseDetailView">
+
+    <Grid Margin="30" RowDefinitions="Auto, *">
+
+        <!-- Nag³ówek -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,25">
+            <Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+            </Button>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
+                <TextBlock x:Name="TitleLabel" Text="Æwiczenie" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock x:Name="SubtitleLabel" Text="Baza wiedzy" FontSize="13" Foreground="Gray"/>
+            </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ContentPanel" Spacing="16" MaxWidth="900" HorizontalAlignment="Center" Margin="0,0,0,40"/>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

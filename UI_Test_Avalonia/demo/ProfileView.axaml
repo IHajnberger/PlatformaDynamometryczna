@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:fa="using:FluentAvalonia.UI.Controls"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="UI_Test_Avalonia.ProfileView">
 
@@ -26,7 +27,7 @@
                 <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
             </Button>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
-                <TextBlock x:Name="PatientNameLabel" Text="Profil pacjenta" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock x:Name="PatientNameLabel" Text="Profil" FontSize="24" FontWeight="Bold" Foreground="White"/>
                 <TextBlock x:Name="StatusText" Text="Dane i notatki kliniczne" FontSize="13" Foreground="Gray"/>
             </StackPanel>
             <Button Grid.Column="2"
@@ -64,16 +65,17 @@
                                     <TextBlock x:Name="BirthDateLabel" Text="—" FontSize="13" Foreground="White"/>
                                 </StackPanel>
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="ID pacjenta" FontSize="11" Foreground="Gray"/>
+                                    <TextBlock Text="ID użytkownika" FontSize="11" Foreground="Gray"/>
                                     <TextBlock x:Name="IdLabel" Text="—" FontSize="13" Foreground="White"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                        <!-- Przycisk edycji – placeholder -->
                         <Button Grid.Column="2"
+                                x:Name="EditDataButton"
                                 VerticalAlignment="Top"
                                 Classes="ModernCard"
-                                Padding="10,8">
+                                Padding="10,8"
+                                IsVisible="False">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <fa:SymbolIcon Symbol="Edit" FontSize="14" Foreground="#3b82f6"/>
                                 <TextBlock Text="Edytuj dane" FontSize="13" Foreground="#3b82f6" VerticalAlignment="Center"/>
@@ -82,8 +84,10 @@
                     </Grid>
                 </Border>
 
-                <!-- Sekcja notatek -->
-                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="24">
+                <!-- Notatki kliniczne – widoczne tylko dla fizjo -->
+                <Border x:Name="NotesSectionBorder"
+                        Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                        CornerRadius="16" Padding="24" IsVisible="False">
                     <StackPanel Spacing="14">
                         <Grid ColumnDefinitions="*, Auto">
                             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
@@ -111,7 +115,6 @@
                                 </Button>
                             </StackPanel>
                         </Grid>
-
                         <Border x:Name="NotesViewMode"
                                 Background="#1a1a1a" BorderBrush="#3d3d3d" BorderThickness="1"
                                 CornerRadius="10" Padding="16" MinHeight="120">
@@ -119,7 +122,6 @@
                                        Text="Brak notatek. Kliknij 'Edytuj' aby dodać."
                                        Foreground="Gray" TextWrapping="Wrap" FontSize="14" LineHeight="22"/>
                         </Border>
-
                         <TextBox x:Name="NotesEditBox"
                                  IsVisible="False"
                                  AcceptsReturn="True"
@@ -130,27 +132,39 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Historia sesji -->
-                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="24">
+                <!-- Wykres trendu – widoczny dla pacjenta (fizjo i self) -->
+                <Border x:Name="TrendSectionBorder"
+                        Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                        CornerRadius="16" Padding="24" IsVisible="False">
+                    <StackPanel Spacing="14">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <fa:SymbolIcon Symbol="PlayFilled" FontSize="18" Foreground="#10b981"/>
+                            <TextBlock Text="Trend – wysokość skoku CMJ" FontSize="15" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                            <Border Background="#1c3a2a" BorderBrush="#10b981" BorderThickness="1"
+                                    CornerRadius="6" Padding="8,3" VerticalAlignment="Center">
+                                <TextBlock Text="Placeholder" FontSize="11" Foreground="#10b981"/>
+                            </Border>
+                        </StackPanel>
+                        <lvc:CartesianChart x:Name="TrendChart"
+                                            Height="200"
+                                            Background="Transparent"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Historia sesji – widoczna dla pacjenta (fizjo i self) -->
+                <Border x:Name="SessionSectionBorder"
+                        Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                        CornerRadius="16" Padding="24" IsVisible="False">
                     <StackPanel Spacing="12">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:SymbolIcon Symbol="Clock" FontSize="18" Foreground="#8b5cf6"/>
                             <TextBlock Text="Historia sesji pomiarowych" FontSize="15" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <StackPanel x:Name="SessionHistoryPanel" Spacing="0">
-                            <!-- wypełniane z code-behind -->
-                            <Border Background="#1c2333" BorderBrush="#2d3a55" BorderThickness="1" CornerRadius="8" Padding="14,10">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <fa:SymbolIcon Symbol="Important" FontSize="14" Foreground="#3b82f6"/>
-                                    <TextBlock Text="Brak zapisanych sesji." FontSize="12" Foreground="#60a5fa"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <StackPanel x:Name="SessionHistoryPanel" Spacing="6"/>
                     </StackPanel>
                 </Border>
 
             </StackPanel>
         </ScrollViewer>
-
     </Grid>
 </UserControl>

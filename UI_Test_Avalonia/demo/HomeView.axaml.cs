@@ -21,6 +21,8 @@ public partial class HomeView : UserControl
     public HomeView(string role = "Physiotherapist")
     {
         InitializeComponent();
+
+
         _role = role;
 
         TileTest.Click += (s, e) => TestClicked?.Invoke(this, EventArgs.Empty);
@@ -52,8 +54,8 @@ public partial class HomeView : UserControl
         {
             TileTest.IsVisible = false;
             TileWifi.IsVisible = false;
+            TilePatients.IsVisible = false;
             PatientSelectionPanel.IsVisible = false;
-
         }
     }
 

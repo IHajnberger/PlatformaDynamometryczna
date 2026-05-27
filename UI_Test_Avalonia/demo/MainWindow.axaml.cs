@@ -60,6 +60,12 @@ public partial class MainWindow : Window
         {
             var wikiView = new Wikipedia();
             wikiView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            wikiView.ExerciseSelected += (s, exerciseId) =>
+            {
+                var detailView = new ExerciseDetailView(exerciseId);
+                detailView.BackClicked += (s, e) => MainContentArea.Content = wikiView;
+                MainContentArea.Content = detailView;
+            };
             MainContentArea.Content = wikiView;
         };
 
@@ -73,7 +79,7 @@ public partial class MainWindow : Window
         homeView.ProfileClicked += (s, e) =>
         {
             var profileView = _currentUserRole == "Patient"
-                ? new ProfileView(mode: "patient")
+                ? new ProfileView(PatientService.Instance.ActivePatient, mode: "patient_self")
                 : new ProfileView(mode: "physio");
             profileView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
             MainContentArea.Content = profileView;
@@ -85,8 +91,6 @@ public partial class MainWindow : Window
             PatientService.Instance.SetActivePatient(null);
             ShowLoginScreen();
         };
-
-
 
         MainContentArea.Content = homeView;
     }

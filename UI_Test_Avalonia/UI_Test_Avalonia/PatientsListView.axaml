@@ -6,68 +6,141 @@
              xmlns:local="clr-namespace:UI_Test_Avalonia"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="UI_Test_Avalonia.PatientsListView">
-               
-    <UserControl.Styles>
-        <Style Selector="Button.DashboardCard">
-            <Setter Property="Background" Value="#2d2d2d"/>
-            <Setter Property="BorderBrush" Value="#3d3d3d"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="16"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="Transitions">
-                <Transitions>
-                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
-                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
-                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
-                </Transitions>
-            </Setter>
-        </Style>
-        <Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#373737"/>
-            <Setter Property="BorderBrush" Value="#4f4f4f"/>
-        </Style>
-        <Style Selector="Button.DashboardCard:pointerover">
-            <Setter Property="RenderTransform" Value="scale(1.02)"/>
-        </Style>
-        <Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#252525"/>
-            <Setter Property="BorderBrush" Value="#3b82f6"/>
-        </Style>
-        <Style Selector="Button.DashboardCard:pressed">
-            <Setter Property="RenderTransform" Value="scale(0.98)"/>
-        </Style>
-    </UserControl.Styles>
 
-    <Grid Margin="30" RowDefinitions="Auto, *">
+	<UserControl.Styles>
+		<Style Selector="Button.DashboardCard">
+			<Setter Property="Background" Value="#2d2d2d"/>
+			<Setter Property="BorderBrush" Value="#3d3d3d"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="CornerRadius" Value="16"/>
+			<Setter Property="Padding" Value="20"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+			<Setter Property="VerticalAlignment" Value="Stretch"/>
+			<Setter Property="Transitions">
+				<Transitions>
+					<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+					<BrushTransition Property="Background" Duration="0:0:0.15"/>
+					<BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+				</Transitions>
+			</Setter>
+		</Style>
+		<Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="#373737"/>
+			<Setter Property="BorderBrush" Value="#4f4f4f"/>
+		</Style>
+		<Style Selector="Button.DashboardCard:pointerover">
+			<Setter Property="RenderTransform" Value="scale(1.02)"/>
+		</Style>
+		<Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="#252525"/>
+			<Setter Property="BorderBrush" Value="#3b82f6"/>
+		</Style>
+		<Style Selector="Button.DashboardCard:pressed">
+			<Setter Property="RenderTransform" Value="scale(0.98)"/>
+		</Style>
+	</UserControl.Styles>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,25">
-            <Button Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
-            </Button>
-            <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="Lista pacjentów" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock x:Name="StatusText" Text="Zobacz rekordy pacjentów" FontSize="13" Foreground="Gray"/>
-            </StackPanel>
-        </StackPanel>
+	<Grid>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="0,10,0,20" Spacing="20" MaxWidth="1100" HorizontalAlignment="Stretch">
-                
-                <Button Classes="DashboardCard">
-                    <Grid ColumnDefinitions="Auto, *, Auto">
-                        <fa:SymbolIcon Grid.Column="0" Symbol="Contact" FontSize="28" Foreground="#3b82f6" Margin="0,0,15,0"/>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="Jan Kowalski" FontSize="16" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="ID: PAC-2026-0041 • Ostatnie badanie: Dzisiaj" FontSize="12" Foreground="Gray"/>
-                        </StackPanel>
-                        <fa:SymbolIcon Grid.Column="3" Symbol="ChevronRight" FontSize="18" Foreground="Gray"/>
-                    </Grid>
-                </Button>
+		<!-- Właściwa treść -->
+		<Grid Margin="30" RowDefinitions="Auto, Auto, *">
 
-            </StackPanel>
-        </ScrollViewer>
-        
-    </Grid>
+
+			<!-- Nagłówek -->
+			<Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,20">
+				<Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
+					<fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+				</Button>
+				<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
+					<TextBlock Text="Lista pacjentów" FontSize="24" FontWeight="Bold" Foreground="White"/>
+					<TextBlock x:Name="StatusText" Text="Zarządzaj kartoteką pacjentów" FontSize="13" Foreground="Gray"/>
+				</StackPanel>
+				<Button Grid.Column="2" Name="AddPatientButton"
+                        VerticalAlignment="Center"
+                        Padding="14,10"
+                        CornerRadius="10"
+                        Background="#3b82f6"
+                        BorderThickness="0">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<fa:SymbolIcon Symbol="Add" FontSize="16" Foreground="White"/>
+						<TextBlock Text="Dodaj pacjenta" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+					</StackPanel>
+				</Button>
+			</Grid>
+
+			<!-- Row 1 pusty – licznik usunięty -->
+			<Grid Grid.Row="1"/>
+
+			<!-- Lista pacjentów -->
+			<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+				<StackPanel x:Name="PatientListPanel" Spacing="10" MaxWidth="1100" HorizontalAlignment="Stretch"/>
+			</ScrollViewer>
+
+		</Grid>
+
+		<!-- Overlay "Dodaj pacjenta" -->
+		<Grid x:Name="AddPatientOverlay" IsVisible="False">
+			<Border Background="#000000" Opacity="0.6"/>
+			<Border Background="#1e1e1e"
+                    BorderBrush="#3d3d3d"
+                    BorderThickness="1"
+                    CornerRadius="20"
+                    Padding="32"
+                    MaxWidth="480"
+                    MaxHeight="560"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+				<StackPanel Spacing="20">
+
+					<Grid ColumnDefinitions="*, Auto">
+						<StackPanel Grid.Column="0" Spacing="4">
+							<TextBlock Text="Nowy pacjent" FontSize="20" FontWeight="Bold" Foreground="White"/>
+							<TextBlock Text="Wypełnij podstawowe dane" FontSize="13" Foreground="Gray"/>
+						</StackPanel>
+						<Button Grid.Column="1" Name="CloseOverlayButton"
+                                Classes="ModernCard" Padding="8" VerticalAlignment="Top">
+							<fa:SymbolIcon Symbol="Dismiss" FontSize="16" Foreground="Gray"/>
+						</Button>
+					</Grid>
+
+					<StackPanel Spacing="6">
+						<TextBlock Text="Imię i nazwisko" FontSize="13" Foreground="Gray"/>
+						<TextBox x:Name="NewPatientName" Watermark="np. Jan Kowalski" Height="38" VerticalContentAlignment="Center"/>
+					</StackPanel>
+
+					<StackPanel Spacing="6">
+						<TextBlock Text="Data urodzenia" FontSize="13" Foreground="Gray"/>
+						<TextBox x:Name="NewPatientDob" Watermark="RRRR-MM-DD" Height="38" VerticalContentAlignment="Center"/>
+					</StackPanel>
+
+					<StackPanel Spacing="6">
+						<TextBlock Text="Numer telefonu" FontSize="13" Foreground="Gray"/>
+						<TextBox x:Name="NewPatientPhone" Watermark="np. +48 600 000 000" Height="38" VerticalContentAlignment="Center"/>
+					</StackPanel>
+
+					<StackPanel Spacing="6">
+						<TextBlock Text="Notatka wstępna" FontSize="13" Foreground="Gray"/>
+						<TextBox x:Name="NewPatientNote"
+                                 Watermark="np. kontuzja kolana, rehabilitacja po operacji..."
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Height="80"
+                                 VerticalContentAlignment="Top"/>
+					</StackPanel>
+
+					<Button Name="ConfirmAddButton"
+                            HorizontalAlignment="Stretch"
+							Classes="Moderncard"
+                            Height="42"
+                            CornerRadius="10"
+                            Background="#3b82f6"
+                            BorderThickness="0">
+						<TextBlock Text="Dodaj pacjenta" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+					</Button>
+
+				</StackPanel>
+			</Border>
+		</Grid>
+
+	</Grid>
 </UserControl>

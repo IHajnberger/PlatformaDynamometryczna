@@ -86,7 +86,7 @@
                     <Grid RowDefinitions="Auto, *">
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
                             <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
-                            <Button Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>
+                            <Button Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>
                         </DockPanel>
                         
                         <Grid Grid.Row="1" ColumnDefinitions="1*, 1*">

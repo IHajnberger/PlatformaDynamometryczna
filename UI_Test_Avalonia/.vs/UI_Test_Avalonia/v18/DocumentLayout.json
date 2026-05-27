@@ -1,14 +1,66 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\",
+  "WorkspaceRootPath": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mmule\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
-      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\patientslistview.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\patientslistview.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mmule\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\app.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\app.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\app.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\app.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\services\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\services\\databaseservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\services\\patientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\services\\patientservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\models\\patient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\models\\patient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\services\\sessionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\services\\sessionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\patientslistview.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\patientslistview.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\models\\platformdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\models\\platformdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\dataview.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\dataview.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\ui_test_avalonia.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\ui_test_avalonia.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\dataview.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\dataview.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\wikipedia.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\wikipedia.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\mainwindow.axaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|c:\\users\\mateusz\\documents\\github\\platformadynamometryczna\\ui_test_avalonia\\ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{415A19B6-62D2-460A-B7D2-287258AAEEDE}|UI_Test_Avalonia\\UI_Test_Avalonia.csproj|solutionrelative:ui_test_avalonia\\mainwindow.axaml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,23 +70,184 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 8,
           "Children": [
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "App.axaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\App.axaml.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\App.axaml.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\App.axaml.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\App.axaml.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAwBAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T11:11:30.649Z",
+              "EditorCaption": ""
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PatientService.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\PatientService.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Services\\PatientService.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\PatientService.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Services\\PatientService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:47:39.342Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "DataView.axaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\DataView.axaml.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\DataView.axaml.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\DataView.axaml.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\DataView.axaml.cs",
+              "ViewState": "AgIAAJUAAAAAAAAAAAAgwKEAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:10:28.972Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "DataView.axaml",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\DataView.axaml",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\DataView.axaml",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\DataView.axaml",
+              "RelativeToolTip": "UI_Test_Avalonia\\DataView.axaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFoAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-05-27T10:10:55.806Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UI_Test_Avalonia",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
+              "RelativeToolTip": "UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-27T10:52:02.609Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "PlatformData.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Models\\PlatformData.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Models\\PlatformData.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Models\\PlatformData.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Models\\PlatformData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:47:33.511Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DatabaseService.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\DatabaseService.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Services\\DatabaseService.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\DatabaseService.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Services\\DatabaseService.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAuwCIAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:52:28.303Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Patient.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Models\\Patient.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Models\\Patient.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Models\\Patient.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Models\\Patient.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAADwvxQAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T11:06:02.163Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "PatientsListView.axaml",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\PatientsListView.axaml",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\PatientsListView.axaml",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\PatientsListView.axaml",
+              "RelativeToolTip": "UI_Test_Avalonia\\PatientsListView.axaml",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAcwIQAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-05-27T10:41:46.898Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SessionService.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\SessionService.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Services\\SessionService.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Services\\SessionService.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Services\\SessionService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:57:17.937Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "App.axaml",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\App.axaml",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\App.axaml",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\App.axaml",
+              "RelativeToolTip": "UI_Test_Avalonia\\App.axaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-05-27T11:11:28.397Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PatientsListView.axaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\PatientsListView.axaml.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\PatientsListView.axaml.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\PatientsListView.axaml.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\PatientsListView.axaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJMAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:43:25.466Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Wikipedia.axaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Wikipedia.axaml.cs",
+              "RelativeDocumentMoniker": "UI_Test_Avalonia\\Wikipedia.axaml.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\Wikipedia.axaml.cs",
+              "RelativeToolTip": "UI_Test_Avalonia\\Wikipedia.axaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T10:45:25.827Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "MainWindow.axaml",
-              "DocumentMoniker": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
               "RelativeDocumentMoniker": "UI_Test_Avalonia\\MainWindow.axaml",
-              "ToolTip": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml",
               "RelativeToolTip": "UI_Test_Avalonia\\MainWindow.axaml",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
@@ -43,15 +256,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 13,
               "Title": "MainWindow.axaml.cs",
-              "DocumentMoniker": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "DocumentMoniker": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
               "RelativeDocumentMoniker": "UI_Test_Avalonia\\MainWindow.axaml.cs",
-              "ToolTip": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
+              "ToolTip": "C:\\Users\\Mateusz\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\MainWindow.axaml.cs",
               "RelativeToolTip": "UI_Test_Avalonia\\MainWindow.axaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T11:47:38.623Z"
+              "WhenOpened": "2026-05-13T11:47:38.623Z",
+              "EditorCaption": ""
             }
           ]
         }

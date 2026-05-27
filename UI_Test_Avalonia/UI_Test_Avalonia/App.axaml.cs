@@ -13,6 +13,8 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        SQLitePCL.Batteries.Init();
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Start the MQTT Service as soon as the application framework is ready

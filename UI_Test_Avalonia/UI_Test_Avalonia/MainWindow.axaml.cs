@@ -16,19 +16,17 @@ public partial class MainWindow : Window
     private void ShowLoginScreen()
     {
         var loginView = new LoginView();
-
         loginView.OnLoginSuccess += (role) =>
         {
             _currentUserRole = role;
             ShowMainApp(role);
         };
-
         MainContentArea.Content = loginView;
     }
 
     private void ShowMainApp(string role)
     {
-        var homeView = new HomeView(role); // ← przekaż rolę
+        var homeView = new HomeView(role);
 
         homeView.TestClicked += (s, e) =>
         {
@@ -48,6 +46,13 @@ public partial class MainWindow : Window
         {
             var patientsView = new PatientsListView();
             patientsView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            patientsView.PatientSelected += (s, patient) =>
+            {
+                var profileView = new ProfileView(patient, mode: "patient");
+                profileView.BackClicked += (s, e) => MainContentArea.Content = patientsView;
+                profileView.PatientDeleted += (s, e) => MainContentArea.Content = patientsView;
+                MainContentArea.Content = profileView;
+            };
             MainContentArea.Content = patientsView;
         };
 
@@ -55,6 +60,12 @@ public partial class MainWindow : Window
         {
             var wikiView = new Wikipedia();
             wikiView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            wikiView.ExerciseSelected += (s, exerciseId) =>
+            {
+                var detailView = new ExerciseDetailView(exerciseId);
+                detailView.BackClicked += (s, e) => MainContentArea.Content = wikiView;
+                MainContentArea.Content = detailView;
+            };
             MainContentArea.Content = wikiView;
         };
 
@@ -67,7 +78,9 @@ public partial class MainWindow : Window
 
         homeView.ProfileClicked += (s, e) =>
         {
-            var profileView = new ProfileView();
+            var profileView = _currentUserRole == "Patient"
+                ? new ProfileView(PatientService.Instance.ActivePatient, mode: "patient_self")
+                : new ProfileView(mode: "physio");
             profileView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
             MainContentArea.Content = profileView;
         };
@@ -75,6 +88,7 @@ public partial class MainWindow : Window
         homeView.LogoutClicked += (s, e) =>
         {
             _currentUserRole = "Guest";
+            PatientService.Instance.SetActivePatient(null);
             ShowLoginScreen();
         };
 

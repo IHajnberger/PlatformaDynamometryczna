@@ -123,6 +123,52 @@
                 </Grid>
             </Border>
 
+            <!-- Wybór ćwiczenia -->
+            <Border x:Name="ExerciseSelectionPanel" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="20">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <fa:SymbolIcon Symbol="Play" Foreground="#3b82f6" FontSize="24"/>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Aktywne ćwiczenie" FontSize="12" Foreground="Gray"/>
+                            <TextBlock x:Name="ActiveExerciseLabel" Text="Nie wybrano ćwiczenia" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <ComboBox x:Name="ExerciseComboBox"
+                              Grid.Column="1"
+                              Margin="30,0"
+                              Height="38"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              PlaceholderText="Wybierz ćwiczenie..."
+                              SelectionChanged="ExerciseComboBox_SelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="local:Exercise">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding Name}" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Description}" Foreground="Gray" FontSize="12" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Button Grid.Column="2"
+                            x:Name="ClearExerciseButton"
+                            Classes="ModernCard"
+                            Padding="10,8"
+                            VerticalAlignment="Center"
+                            IsVisible="False"
+                            Click="ClearExerciseButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fa:SymbolIcon Symbol="Dismiss" FontSize="14" Foreground="#ef4444"/>
+                            <TextBlock Text="Wyczyść" Foreground="#ef4444" FontSize="13"/>
+                        </StackPanel>
+                    </Button>
+
+                </Grid>
+            </Border>
+
             <!-- Kafelki -->
             <UniformGrid Columns="3" Rows="2" HorizontalAlignment="Stretch">
 

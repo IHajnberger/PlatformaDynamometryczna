@@ -54,40 +54,38 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="16" MaxWidth="1100" HorizontalAlignment="Stretch" Margin="0,0,0,20">
 
-                <!-- Nagłówek sekcji -->
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <fa:SymbolIcon Symbol="Library" FontSize="18" Foreground="#8b5cf6"/>
                     <TextBlock Text="Testy dynamometryczne" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Kafelek 1 – Skok pionowy CMJ -->
-                <Button Name="TileCMJ" Classes="DashboardCard">
+                <Button Name="TileSQ" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
                                 Background="#1d3a6e" Margin="0,0,18,0" VerticalAlignment="Center">
-                            <fa:SymbolIcon Symbol="Up" FontSize="24" Foreground="#3b82f6"
+                            <fa:SymbolIcon Symbol="People" FontSize="24" Foreground="#3b82f6"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Skok pionowy (CMJ)" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Przysiad (SQ)" FontSize="16" FontWeight="Bold" Foreground="White"/>
                                 <Border Background="#1d3a6e" CornerRadius="6" Padding="8,3">
-                                    <TextBlock Text="Countermovement Jump" FontSize="11" Foreground="#3b82f6"/>
+                                    <TextBlock Text="Squat Test" FontSize="11" Foreground="#3b82f6"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Ocena mocy eksplozywnej kończyn dolnych i asymetrii sił podczas skoku obunóż." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Ocena dystrybucji siły, stabilności wykresu i indeksu asymetrii (L vs R) w trakcie kontrolowanego przysiadu." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
-                                    <TextBlock Text="~5 min" FontSize="12" Foreground="#10b981"/>
+                                    <TextBlock Text="~3 min" FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <fa:SymbolIcon Symbol="People" FontSize="12" Foreground="Gray"/>
-                                    <TextBlock Text="Obie kończyny" FontSize="12" Foreground="Gray"/>
+                                    <fa:SymbolIcon Symbol="Target" FontSize="12" Foreground="Gray"/>
+                                    <TextBlock Text="Asymetria L:R" FontSize="12" Foreground="Gray"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Flag" FontSize="12" Foreground="#f59e0b"/>
-                                    <TextBlock Text="4 fazy" FontSize="12" Foreground="#f59e0b"/>
+                                    <TextBlock Text="4 fazy analizy" FontSize="12" Foreground="#f59e0b"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -95,8 +93,7 @@
                     </Grid>
                 </Button>
 
-                <!-- Kafelek 2 – Placeholder -->
-                <Button Name="TileSQJ" Classes="DashboardCard">
+                <Button Name="TileISO" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
                                 Background="#2d1b4e" Margin="0,0,18,0" VerticalAlignment="Center">
@@ -105,20 +102,19 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Skok z przysiadu (SQJ)" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Przysiad izometryczny (ISO)" FontSize="16" FontWeight="Bold" Foreground="White"/>
                                 <Border Background="#2d1b4e" CornerRadius="6" Padding="8,3">
-                                    <TextBlock Text="Squat Jump" FontSize="11" Foreground="#8b5cf6"/>
+                                    <TextBlock Text="Isometric Squat" FontSize="11" Foreground="#8b5cf6"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Ocena siły koncentrycznej kończyn dolnych bez fazy ekscentrycznej – wkrótce dostępne." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Izolowana ocena maksymalnej siły koncentrycznej bez ruchu w stawach pod stałym oporem – wkrótce dostępne." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="Gray"/>
-                                    <TextBlock Text="~5 min" FontSize="12" Foreground="Gray"/>
+                                    <TextBlock Text="~2 min" FontSize="12" Foreground="Gray"/>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="5">
-                                    <fa:SymbolIcon Symbol="People" FontSize="12" Foreground="Gray"/>
-                                    <TextBlock Text="Obie kończyny" FontSize="12" Foreground="Gray"/>
+                                    <fa:SymbolIcon Symbol="Target" FontSize="12" Foreground="Gray"/>                                    <TextBlock Text="Skurcz statyczny" FontSize="12" Foreground="Gray"/>
                                 </StackPanel>
                                 <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Wkrótce" FontSize="11" Foreground="Gray"/>

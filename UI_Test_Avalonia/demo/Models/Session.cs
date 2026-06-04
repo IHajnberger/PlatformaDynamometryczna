@@ -9,8 +9,21 @@ public class Session
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }
-    public string ExerciseName { get; set; } = "Skok pionowy";
+    public string ExerciseName { get; set; } = "Przysiad (SQ)";
     public DateTime Date { get; set; } = DateTime.Now;
+
+    // Snapshot wyników biomechanicznych
+    public double PeakForceLeft { get; set; }
+    public double PeakForceRight { get; set; }
+    public double PeakForceTotal { get; set; }
+    public double MeanForceLeft { get; set; }
+    public double MeanForceRight { get; set; }
+    public double AsymmetryIndex { get; set; }
+    public double LoadRatioLeft { get; set; }
+    public double LoadRatioRight { get; set; }
+    public double MinForceLeft { get; set; }
+    public double MinForceRight { get; set; }
+    public double RFD { get; set; }
 }
 
 public sealed class SessionService
@@ -22,7 +35,6 @@ public sealed class SessionService
     private List<Session> _sessions = new();
 
     public IReadOnlyList<Session> Sessions => _sessions;
-
     public event EventHandler? SessionsChanged;
 
     private SessionService()
@@ -38,7 +50,6 @@ public sealed class SessionService
         {
             _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "sessions.json");
         }
-
         Load();
     }
 
@@ -49,7 +60,8 @@ public sealed class SessionService
         SessionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public IReadOnlyList<Session> GetForPatient(Guid patientId)
+    // Zwraca List<Session> żeby można było sortować
+    public List<Session> GetForPatient(Guid patientId)
     {
         return _sessions.FindAll(s => s.PatientId == patientId);
     }

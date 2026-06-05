@@ -11,6 +11,42 @@ public class Session
     public Guid PatientId { get; set; }
     public string ExerciseName { get; set; } = "Skok pionowy";
     public DateTime Date { get; set; } = DateTime.Now;
+
+    // cokolwiek to jest (?)
+    public double PeakForceLeft { get; set; }
+    public double PeakForceRight { get; set; }
+    public double PeakForceTotal { get; set; }
+
+    public double MeanForceLeft { get; set; }
+    public double MeanForceRight { get; set; }
+    public double MeanForceTotal { get; set; }
+
+    public double MinForceLeft { get; set; }
+    public double MinForceRight { get; set; }
+
+    // Rozkład obciążenia
+    public double LoadRatioLeft { get; set; }
+    public double LoadRatioRight { get; set; }
+
+    public double AsymmetryIndex { get; set; }
+
+    // Dynamika
+    public double RFD { get; set; }
+
+    // Stabilność
+    public double StabilityIndex { get; set; }
+    public double SwayVelocity { get; set; }
+    public double ForceVariability { get; set; }
+
+    // Kontrola ruchu
+    public double TimeToPeakForce { get; set; }
+    public double StabilizationTime { get; set; }
+    public double WeightTransferSpeed { get; set; }
+
+    // Wyniki zbiorcze
+    public double TotalForce { get; set; }
+    public double ControlScore { get; set; }
+    public double FatigueIndex { get; set; }
 }
 
 public sealed class SessionService

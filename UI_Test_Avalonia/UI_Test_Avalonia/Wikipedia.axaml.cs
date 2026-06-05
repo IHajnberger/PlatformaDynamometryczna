@@ -14,7 +14,8 @@ public partial class Wikipedia : UserControl
 
         BackButton.Click += (s, e) => BackClicked?.Invoke(this, EventArgs.Empty);
 
-        TileCMJ.Click += (s, e) => ExerciseSelected?.Invoke(this, "CMJ");
-        TileSQJ.Click += (s, e) => ExerciseSelected?.Invoke(this, "SQJ");
+        // Zmienione kafelki i parametry pod przysiady
+        TileSQ.Click += (s, e) => ExerciseSelected?.Invoke(this, "SQ");
+        TileISO.Click += (s, e) => ExerciseSelected?.Invoke(this, "ISO");
     }
 }

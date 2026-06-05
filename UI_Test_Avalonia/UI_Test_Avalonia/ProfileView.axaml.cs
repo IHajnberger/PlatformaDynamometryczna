@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+
 
 namespace UI_Test_Avalonia;
 
@@ -33,13 +34,12 @@ public partial class ProfileView : UserControl
             case "patient_self":
                 LoadPatientSelfProfile(patient);
                 break;
-            default: // "patient" – fizjo ogląda profil pacjenta
+            default:
                 LoadPhysioViewOfPatient(patient);
                 break;
         }
     }
 
-    // ── Fizjo – własny profil ────────────────────────────────────────────
     private void LoadPhysioSelfProfile()
     {
         PatientNameLabel.Text = "Mój profil";
@@ -48,10 +48,8 @@ public partial class ProfileView : UserControl
         BirthDateLabel.Text = "—";
         IdLabel.Text = "FIZJO-01";
         AvatarInitials.Text = "FZ";
-        // Nic więcej – bez notatek, sesji, wykresu
     }
 
-    // ── Fizjo – ogląda profil pacjenta ──────────────────────────────────
     private void LoadPhysioViewOfPatient(Patient? patient)
     {
         if (patient == null) return;
@@ -67,7 +65,6 @@ public partial class ProfileView : UserControl
 
         EditDataButton.IsVisible = true;
 
-        // Notatki – edytowalne
         NotesSectionBorder.IsVisible = true;
         if (!string.IsNullOrWhiteSpace(patient.Notes))
         {
@@ -78,19 +75,16 @@ public partial class ProfileView : UserControl
         CancelEditButton.Click += (s, e) => ExitEditMode(save: false);
         SaveNotesButton.Click += (s, e) => ExitEditMode(save: true);
 
-        // Wykres + sesje
         TrendSectionBorder.IsVisible = true;
         SessionSectionBorder.IsVisible = true;
         LoadTrendChart(patient);
         LoadSessions(patient);
     }
 
-    // ── Pacjent – własny profil ──────────────────────────────────────────
     private void LoadPatientSelfProfile(Patient? patient)
     {
         if (patient == null)
         {
-            // Brak zalogowanego pacjenta – placeholder
             PatientNameLabel.Text = "Mój profil";
             StatusText.Text = "Twoje dane i historia ćwiczeń";
             FullNameLabel.Text = "Pacjent (placeholder)";
@@ -106,7 +100,6 @@ public partial class ProfileView : UserControl
         SetBasicData(patient);
         StatusText.Text = "Twoje dane i historia ćwiczeń";
 
-        // Notatki – tylko do odczytu (pokazujemy jako zwykły tekst, bez przycisku edycji)
         NotesSectionBorder.IsVisible = true;
         EditNotesButton.IsVisible = false;
         NotesViewText.Text = string.IsNullOrWhiteSpace(patient.Notes)
@@ -115,14 +108,12 @@ public partial class ProfileView : UserControl
         NotesViewText.Foreground = string.IsNullOrWhiteSpace(patient.Notes)
             ? Brushes.Gray : Brushes.White;
 
-        // Wykres + sesje
         TrendSectionBorder.IsVisible = true;
         SessionSectionBorder.IsVisible = true;
         LoadTrendChart(patient);
         LoadSessions(patient);
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────
     private void SetBasicData(Patient patient)
     {
         PatientNameLabel.Text = patient.FullName;
@@ -148,60 +139,202 @@ public partial class ProfileView : UserControl
             return;
         }
 
-        // Placeholder wartości – docelowo z modelu sesji
-        var values = new ObservableCollection<double>();
-        for (int i = 0; i < sessions.Count; i++)
-            values.Add(25 + i * 1.5 + new Random(i).Next(-3, 4)); // fake trend rosnący
+        var sorted = new List<Session>(sessions);
+        sorted.Sort((a, b) => a.Date.CompareTo(b.Date));
 
-        SetupChart(values);
+        
+        var data = sorted.Select(s => (
+            Value: s.AsymmetryIndex,
+            Label: s.Date.ToString("dd.MM")
+        )).ToList();
+        
+        RenderChart(data);
+        
     }
 
     private void LoadPlaceholderChart()
     {
-        var values = new ObservableCollection<double> { 22, 24, 23, 26, 25, 28, 27, 30 };
-        SetupChart(values);
+        var data = new List<(double Value, string Label)>
+    {
+        (14.0, "01.05"), (10.0, "04.05"), (-8.0, "08.05"),
+        (6.0, "12.05"), (-4.0, "15.05"), (3.0, "19.05"),
+        (-2.0, "22.05"), (1.0, "26.05")
+    };
+        RenderChart(data);
     }
 
-    private void SetupChart(ObservableCollection<double> values)
+    private void RenderChart(List<(double Value, string Label)> data)
     {
-        var color = SKColor.Parse("#10b981");
+        const int W = 900;
+        const int H = 280;
+        const int padL = 52;
+        const int padR = 20;
+        const int padT = 30;
+        const int padB = 36;
 
-        TrendChart.Series = new ISeries[]
+        int chartW = W - padL - padR;
+        int chartH = H - padT - padB;
+
+        double maxAbs = data.Count > 0 ? data.Max(d => Math.Abs(d.Value)) : 10;
+        maxAbs = Math.Max(maxAbs + 4, 14);
+
+        double zeroY = padT + chartH / 2.0;
+        double step = (double)chartW / Math.Max(data.Count, 1);
+        double barW = Math.Min(44, step * 0.52);
+
+        using var bitmap = new SKBitmap(W, H);
+        using var canvas = new SKCanvas(bitmap);
+
+        canvas.Clear(SKColors.Transparent);
+
+        using var chartBgPaint = new SKPaint { Color = SKColor.Parse("#1a1a1a"), IsAntialias = true };
+        var chartRect = new SKRoundRect(new SKRect(padL, padT, W - padR, H - padB), 6);
+        canvas.DrawRoundRect(chartRect, chartBgPaint);
+
+        using var gridPaint = new SKPaint
         {
-            new LineSeries<double>
-            {
-                Values = values,
-                GeometrySize = 8,
-                LineSmoothness = 0.5,
-                Stroke = new SolidColorPaint(color) { StrokeThickness = 3 },
-                GeometryStroke = new SolidColorPaint(color) { StrokeThickness = 2 },
-                GeometryFill = new SolidColorPaint(SKColors.White),
-                Fill = new LinearGradientPaint(
-                    new[] { color.WithAlpha(50), color.WithAlpha(0) },
-                    new SKPoint(0.5f, 0), new SKPoint(0.5f, 1))
-            }
+            Color = SKColor.Parse("#2d2d2d"),
+            StrokeWidth = 1,
+            IsAntialias = false
         };
 
-        TrendChart.XAxes = new Axis[]
+        using var axisTextPaint = new SKPaint
         {
-            new Axis
-            {
-                Labels = null,
-                TextSize = 0,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 }
-            }
+            Color = SKColor.Parse("#888888"),
+            TextSize = 12,
+            IsAntialias = true,
+            TextAlign = SKTextAlign.Right
         };
 
-        TrendChart.YAxes = new Axis[]
+        foreach (var pct in new[] { 5, 10, 15 })
         {
-            new Axis
+            double posY = zeroY - (chartH / 2.0) * pct / maxAbs;
+            double negY = zeroY + (chartH / 2.0) * pct / maxAbs;
+
+            if (posY >= padT)
             {
-                LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
+                canvas.DrawLine(padL, (float)posY, W - padR, (float)posY, gridPaint);
+                canvas.DrawText($"+{pct}%", padL - 5, (float)posY + 4, axisTextPaint);
+            }
+            if (negY <= H - padB)
+            {
+                canvas.DrawLine(padL, (float)negY, W - padR, (float)negY, gridPaint);
+                canvas.DrawText($"-{pct}%", padL - 5, (float)negY + 4, axisTextPaint);
+            }
+        }
+
+        using var zeroPaint = new SKPaint
+        {
+            Color = SKColor.Parse("#555555"),
+            StrokeWidth = 1.5f,
+            IsAntialias = false
+        };
+        canvas.DrawLine(padL, (float)zeroY, W - padR, (float)zeroY, zeroPaint);
+        canvas.DrawText("0%", padL - 5, (float)zeroY + 4, axisTextPaint);
+
+        for (int i = 0; i < data.Count; i++)
+        {
+            double val = data[i].Value;
+            string label = data[i].Label;
+            double cx = padL + step * i + step / 2.0;
+            double barH = Math.Abs(val) / maxAbs * (chartH / 2.0);
+            float x = (float)(cx - barW / 2.0);
+
+            bool isLeft = val >= 0;
+            SKColor fillColor = isLeft
+                ? SKColor.Parse("#3b82f6").WithAlpha(150)
+                : SKColor.Parse("#f59e0b").WithAlpha(150);
+            SKColor strokeColor = isLeft
+                ? SKColor.Parse("#3b82f6")
+                : SKColor.Parse("#f59e0b");
+            SKColor labelColor = isLeft
+                ? SKColor.Parse("#60a5fa")
+                : SKColor.Parse("#fbbf24");
+
+            float barTop = isLeft ? (float)(zeroY - barH) : (float)zeroY;
+            float barHeight = (float)Math.Max(barH, 2);
+
+            using var fillPaint = new SKPaint { Color = fillColor, IsAntialias = true };
+            using var edgePaint = new SKPaint
+            {
+                Color = strokeColor,
+                StrokeWidth = 1.5f,
+                IsAntialias = true,
+                IsStroke = true
+            };
+
+            float r = 3f;
+            using var path = new SKPath();
+
+            if (isLeft)
+            {
+                // Zaokrąglenie tylko na górze
+                path.MoveTo(x, barTop + r);
+                path.QuadTo(x, barTop, x + r, barTop);
+                path.LineTo(x + (float)barW - r, barTop);
+                path.QuadTo(x + (float)barW, barTop, x + (float)barW, barTop + r);
+                path.LineTo(x + (float)barW, barTop + barHeight);
+                path.LineTo(x, barTop + barHeight);
+                path.Close();
+            }
+            else
+            {
+                // Zaokrąglenie tylko na dole
+                path.MoveTo(x, barTop);
+                path.LineTo(x + (float)barW, barTop);
+                path.LineTo(x + (float)barW, barTop + barHeight - r);
+                path.QuadTo(x + (float)barW, barTop + barHeight, x + (float)barW - r, barTop + barHeight);
+                path.LineTo(x + r, barTop + barHeight);
+                path.QuadTo(x, barTop + barHeight, x, barTop + barHeight - r);
+                path.Close();
+            }
+
+            canvas.DrawPath(path, fillPaint);
+
+            // Krawędzie bez poziomej linii przy osi zerowej
+            if (isLeft)
+            {
+                canvas.DrawLine(x, barTop + r, x, barTop + barHeight, edgePaint);
+                canvas.DrawLine(x + (float)barW, barTop + r, x + (float)barW, barTop + barHeight, edgePaint);
+                canvas.DrawLine(x + r, barTop, x + (float)barW - r, barTop, edgePaint);
+            }
+            else
+            {
+                canvas.DrawLine(x, barTop, x, barTop + barHeight - r, edgePaint);
+                canvas.DrawLine(x + (float)barW, barTop, x + (float)barW, barTop + barHeight - r, edgePaint);
+                canvas.DrawLine(x + r, barTop + barHeight, x + (float)barW - r, barTop + barHeight, edgePaint);
+            }
+
+            using var valTextPaint = new SKPaint
+            {
+                Color = labelColor,
                 TextSize = 11,
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 },
-                Labeler = val => $"{val:F0} cm"
-            }
-        };
+                IsAntialias = true,
+                FakeBoldText = true,
+                TextAlign = SKTextAlign.Center
+            };
+
+            string valText = isLeft ? $"+{val:F1}%" : $"{val:F1}%";
+            float textY = isLeft
+                ? barTop - 5
+                : barTop + barHeight + 13;
+
+            canvas.DrawText(valText, (float)cx, textY, valTextPaint);
+
+            using var dateTextPaint = new SKPaint
+            {
+                Color = SKColor.Parse("#888888"),
+                TextSize = 12,
+                IsAntialias = true,
+                TextAlign = SKTextAlign.Center
+            };
+            canvas.DrawText(label, (float)cx, H - 8, dateTextPaint);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+        using var ms = new System.IO.MemoryStream(encoded.ToArray());
+        TrendChart.Source = new Avalonia.Media.Imaging.Bitmap(ms);
     }
 
     private void LoadSessions(Patient patient)
@@ -215,47 +348,51 @@ public partial class ProfileView : UserControl
             {
                 Background = SolidColorBrush.Parse("#1c2333"),
                 BorderBrush = SolidColorBrush.Parse("#2d3a55"),
-                BorderThickness = new Avalonia.Thickness(1),
-                CornerRadius = new Avalonia.CornerRadius(8),
-                Padding = new Avalonia.Thickness(14, 10),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(14, 10),
                 Child = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
                     Spacing = 8,
                     Children =
-                    {
-                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Important, FontSize = 14, Foreground = SolidColorBrush.Parse("#3b82f6") },
-                        new TextBlock { Text = "Brak zapisanych sesji.", FontSize = 12, Foreground = SolidColorBrush.Parse("#60a5fa"), VerticalAlignment = VerticalAlignment.Center }
-                    }
+                {
+                    new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Important, FontSize = 14, Foreground = SolidColorBrush.Parse("#3b82f6") },
+                    new TextBlock { Text = "Brak zapisanych sesji.", FontSize = 12, Foreground = SolidColorBrush.Parse("#60a5fa"), VerticalAlignment = VerticalAlignment.Center }
+                }
                 }
             });
             return;
         }
 
-        // Pokaż max 10 ostatnich, od najnowszej
-        var toShow = new System.Collections.Generic.List<Session>(sessions);
+        var toShow = new List<Session>(sessions);
         toShow.Sort((a, b) => b.Date.CompareTo(a.Date));
         if (toShow.Count > 10) toShow = toShow.GetRange(0, 10);
 
         foreach (var session in toShow)
         {
+
+            var asymColor = Math.Abs(session.AsymmetryIndex) > 10 ? "#ef4444" : "#10b981";
+            var asymBg = Math.Abs(session.AsymmetryIndex) > 10 ? "#3b1212" : "#1c3a2a";
+            var dominantSide = session.AsymmetryIndex > 0 ? "L mocniejsza" : "R mocniejsza";
+
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
             grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+            grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
 
-            // Ikona ćwiczenia
             var icon = new Border
             {
                 Width = 32,
                 Height = 32,
-                CornerRadius = new Avalonia.CornerRadius(8),
+                CornerRadius = new CornerRadius(8),
                 Background = SolidColorBrush.Parse("#1d3a6e"),
-                Margin = new Avalonia.Thickness(0, 0, 12, 0),
+                Margin = new Thickness(0, 0, 12, 0),
                 Child = new FluentAvalonia.UI.Controls.SymbolIcon
                 {
-                    Symbol = FluentAvalonia.UI.Controls.Symbol.Up,
+                    Symbol = FluentAvalonia.UI.Controls.Symbol.People,
                     FontSize = 14,
                     Foreground = SolidColorBrush.Parse("#3b82f6"),
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -268,8 +405,28 @@ public partial class ProfileView : UserControl
                 Text = session.ExerciseName,
                 Foreground = Brushes.White,
                 FontSize = 13,
-                FontWeight = Avalonia.Media.FontWeight.SemiBold,
+                FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var asymmetryBadge = new Border
+            {
+                Background = SolidColorBrush.Parse(asymBg),
+                BorderBrush = SolidColorBrush.Parse(asymColor),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(8, 4),
+                Margin = new Thickness(0, 0, 12, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Child = new TextBlock
+                {
+                    Text = session.AsymmetryIndex == 0
+                        ? "Asymetria: brak danych"
+                        : $"Asymetria: {Math.Abs(session.AsymmetryIndex):F1}% • {dominantSide}",
+                    FontSize = 11,
+                    Foreground = SolidColorBrush.Parse(session.AsymmetryIndex == 0 ? "#888888" : asymColor),
+                    FontWeight = FontWeight.Medium
+                }
             };
 
             var dateBlock = new TextBlock
@@ -278,37 +435,38 @@ public partial class ProfileView : UserControl
                 Foreground = Brushes.Gray,
                 FontSize = 12,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Avalonia.Thickness(0, 0, 16, 0)
+                Margin = new Thickness(0, 0, 12, 0)
             };
 
-            // Przycisk szczegółów – placeholder
             var detailBtn = new Button
             {
                 Background = SolidColorBrush.Parse("#1e3a5f"),
-                BorderThickness = new Avalonia.Thickness(0),
-                CornerRadius = new Avalonia.CornerRadius(8),
-                Padding = new Avalonia.Thickness(10, 6),
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(10, 6),
                 VerticalAlignment = VerticalAlignment.Center,
                 Content = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
                     Spacing = 5,
                     Children =
-                    {
-                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Open, FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6") },
-                        new TextBlock { Text = "Szczegóły", FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6"), VerticalAlignment = VerticalAlignment.Center }
-                    }
+                {
+                    new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Open, FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6") },
+                    new TextBlock { Text = "Szczegóły", FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6"), VerticalAlignment = VerticalAlignment.Center }
+                }
                 }
             };
             detailBtn.Click += (s, e) => { /* placeholder */ };
 
             Grid.SetColumn(icon, 0);
             Grid.SetColumn(nameBlock, 1);
-            Grid.SetColumn(dateBlock, 2);
-            Grid.SetColumn(detailBtn, 3);
+            Grid.SetColumn(asymmetryBadge, 2);
+            Grid.SetColumn(dateBlock, 3);
+            Grid.SetColumn(detailBtn, 4);
 
             grid.Children.Add(icon);
             grid.Children.Add(nameBlock);
+            grid.Children.Add(asymmetryBadge);
             grid.Children.Add(dateBlock);
             grid.Children.Add(detailBtn);
 
@@ -316,10 +474,10 @@ public partial class ProfileView : UserControl
             {
                 Background = SolidColorBrush.Parse("#1a1a1a"),
                 BorderBrush = SolidColorBrush.Parse("#3d3d3d"),
-                BorderThickness = new Avalonia.Thickness(1),
-                CornerRadius = new Avalonia.CornerRadius(10),
-                Padding = new Avalonia.Thickness(14, 10),
-                Margin = new Avalonia.Thickness(0, 0, 0, 6),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                Padding = new Thickness(14, 10),
+                Margin = new Thickness(0, 0, 0, 6),
                 Child = grid
             });
         }

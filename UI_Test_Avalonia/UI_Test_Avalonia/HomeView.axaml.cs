@@ -56,13 +56,15 @@ public partial class HomeView : UserControl
     {
         if (_role == "Patient")
         {
-            TilePatients.IsVisible = false;
+            TileTest.IsVisible = false;
+            TilePatients.IsVisible = true;
             TileWifi.IsVisible = false;
-            TileWiki.IsVisible = false;
-            TileProfile.IsVisible = false;
+            TileWiki.IsVisible = true;
+            TileProfile.IsVisible = true;
             PatientSelectionPanel.IsVisible = false;
             ExerciseSelectionPanel.IsVisible = false;
         }
+
     }
 
     private void UpdateActivePatientLabel()

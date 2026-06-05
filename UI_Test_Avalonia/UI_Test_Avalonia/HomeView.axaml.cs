@@ -63,6 +63,20 @@ public partial class HomeView : UserControl
             TileProfile.IsVisible = true;
             PatientSelectionPanel.IsVisible = false;
             ExerciseSelectionPanel.IsVisible = false;
+
+            // Zmiana nazw kafelek dla pacjenta:
+            var profileText = this.FindControl<TextBlock>("TileProfileText");
+            var patientsText = this.FindControl<TextBlock>("TilePatientsText");
+            var headerText = this.FindControl<TextBlock>("TileHeaderText");
+            var patientsSubText = this.FindControl<TextBlock>("TilePatientsSubText");
+
+            if (profileText != null && patientsText != null && headerText != null && patientsSubText!=null)
+            {
+                profileText.Text = "Ustawienia konta pacjenta";
+                patientsText.Text = "Moje ćwiczenia";
+                headerText.Text = "Wybierz aktywność";
+                patientsSubText.Text = "Zarządzaj historią ćwiczeń";
+            }
         }
 
     }

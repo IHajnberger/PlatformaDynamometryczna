@@ -2,6 +2,8 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 
 namespace UI_Test_Avalonia;
 
@@ -10,13 +12,17 @@ public partial class PatientsListView : UserControl
     public event EventHandler? BackClicked;
     public event EventHandler<Patient>? PatientSelected;
 
+    // Pod fizjo - klient
+    private readonly string _role;
+
     // Kolory avatarów dla kolejnych pacjentów
     private static readonly string[] AvatarColors =
         { "#1d4ed8", "#7c3aed", "#b45309", "#065f46", "#be185d", "#0e7490" };
 
-    public PatientsListView()
+    public PatientsListView(string role = "Physiotherapist")
     {
         InitializeComponent();
+        _role = role;
 
         BackButton.Click += (s, e) => BackClicked?.Invoke(this, EventArgs.Empty);
 
@@ -56,10 +62,27 @@ public partial class PatientsListView : UserControl
             AddPatientOverlay.IsVisible = false;
         };
 
-       
         PatientService.Instance.PatientsChanged += (s, e) => RefreshList();
 
         RefreshList();
+        ApplyRoleRestrictions();
+    }
+
+    private void ApplyRoleRestrictions()
+    {
+        if (_role == "Patient")
+        {
+            var statusText = this.FindControl<TextBlock>("StatusText");
+            var subStatusText = this.FindControl<TextBlock>("SubStatusText");
+
+            if (statusText != null)
+                statusText.Text = "Moje dane";
+
+            if (subStatusText != null)
+                subStatusText.Text = "Informacje o koncie pacjenta";
+
+            AddPatientButton.IsVisible = false;
+        }
     }
 
     private void RefreshList()

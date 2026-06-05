@@ -44,7 +44,7 @@ public partial class MainWindow : Window
 
         homeView.PatientsClicked += (s, e) =>
         {
-            var patientsView = new PatientsListView();
+            var patientsView = new PatientsListView(_currentUserRole);
             patientsView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
             patientsView.PatientSelected += (s, patient) =>
             {

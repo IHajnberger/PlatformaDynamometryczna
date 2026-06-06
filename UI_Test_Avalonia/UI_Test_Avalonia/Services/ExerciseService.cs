@@ -35,7 +35,7 @@ public sealed class ExerciseService
         {
             Name = "Statyczny rozkład ciężaru",
             Description = "Static Weight Distribution",
-            Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.LoadRatio, ExerciseParam.AsymmetryIndex, ExerciseParam.TotalForce }
+            Params = new() { ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.LoadRatio, ExerciseParam.AsymmetryIndex, ExerciseParam.TotalForce }
         },
         new Exercise
         {
@@ -52,14 +52,14 @@ public sealed class ExerciseService
         new Exercise
         {
             Name = "Test wstawania i siadania",
-            Description = "Sit To Stand",
+            Description = "Sit To Stand Test",
             Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.AsymmetryIndex, ExerciseParam.RFD, ExerciseParam.TimeToPeakForce, ExerciseParam.WeightTransferSpeed, ExerciseParam.FatigueIndex }
         },
         new Exercise
         {
-            Name = "Przysiad obustronny",
+            Name = "Przysiad",
             Description = "Squat Assessment",
-            Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.MinForceL, ExerciseParam.MinForceR, ExerciseParam.AsymmetryIndex, ExerciseParam.LoadRatio, ExerciseParam.RFD, ExerciseParam.TimeToPeakForce }
+            Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.MinForceL, ExerciseParam.MinForceR, ExerciseParam.AsymmetryIndex, ExerciseParam.LoadRatio, ExerciseParam.RFD, ExerciseParam.ControlScore ,ExerciseParam.TimeToPeakForce }
         },
         new Exercise
         {
@@ -69,9 +69,15 @@ public sealed class ExerciseService
         },
         new Exercise
         {
-            Name = "Test wytrzymałości izometrycznej",
-            Description = "Isometric Strength Test",
-            Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.RFD, ExerciseParam.FatigueIndex, ExerciseParam.TimeToPeakForce, ExerciseParam.ControlScore }
+            Name = "Izometryczny półprzysiad",
+            Description = "Isometric HalfSquat",
+            Params = new() { ExerciseParam.PeakForceL, ExerciseParam.PeakForceR, ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.FatigueIndex, ExerciseParam.TimeToPeakForce, ExerciseParam.ControlScore }
+        },
+        new Exercise
+        {
+            Name = "Test przenoszenia ciężaru",
+            Description = "Weight Shift Test",
+            Params = new() { ExerciseParam.MeanForceL, ExerciseParam.MeanForceR, ExerciseParam.LoadRatio, ExerciseParam.AsymmetryIndex, ExerciseParam.WeightTransferSpeed, ExerciseParam.StabilizationTime, ExerciseParam.ControlScore }
         },
     };
 

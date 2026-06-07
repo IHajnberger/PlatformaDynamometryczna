@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace UI_Test_Avalonia;
 
@@ -21,11 +22,9 @@ public partial class DataView : UserControl, IDisposable
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
     
-    // Główne kolekcje spięte z LiveCharts
     private readonly ObservableCollection<double> _leftValues = new();
     private readonly ObservableCollection<double> _rightValues = new();
 
-    // Głębokie bufory dla kalkulatora parametrów biomechanicznych
     private readonly List<(double Weight, DateTime Timestamp)> _leftBuffer = new();
     private readonly List<(double Weight, DateTime Timestamp)> _rightBuffer = new();
     private const int BufferSize = 200; 
@@ -41,9 +40,8 @@ public partial class DataView : UserControl, IDisposable
 
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
-    private const int ViewWindowSize = 100; // Rozmiar widocznego okna punktów
+    private const int ViewWindowSize = 100; 
 
-    // Domyślnie aplikacja startuje w trybie Live (HistoryMode = false)
     private bool _leftIsHistoryMode = false;
     private bool _rightIsHistoryMode = false;
     private bool _isUpdatingFromScroll = false;
@@ -76,12 +74,9 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = Brushes.Green;
         };
 
-
-
         var leftColor = SKColor.Parse("#3b82f6");
         var rightColor = SKColor.Parse("#f59e0b");
 
-        // Przywrócenie płynnych animacji fali z CubicOut
         LeftChartSeries = new ObservableCollection<ISeries>
         {
             new LineSeries<double>
@@ -95,8 +90,8 @@ public partial class DataView : UserControl, IDisposable
                     new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                AnimationsSpeed = TimeSpan.FromMilliseconds(0), // Disable animations for live data
+                EasingFunction = null
             }
         };
 
@@ -113,8 +108,8 @@ public partial class DataView : UserControl, IDisposable
                     new[] { rightColor.WithAlpha(40), rightColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                AnimationsSpeed = TimeSpan.FromMilliseconds(0), // Disable animations for live data
+                EasingFunction = null
             }
         };
 
@@ -144,15 +139,12 @@ public partial class DataView : UserControl, IDisposable
 
         DataContext = this;
 
-        // Rejestracja zdarzeń suwaków dolnych
         LeftScrollBar.Scroll += LeftScrollBar_Scroll;
         RightScrollBar.Scroll += RightScrollBar_Scroll;
 
-        // KLUCZOWE: Sprawdzamy stan granicy dopiero PO puszczeniu myszki/palca (koniec interakcji użytkownika)
         LeftChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_leftXAxis, ref _leftIsHistoryMode, _leftValues.Count);
         RightChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_rightXAxis, ref _rightIsHistoryMode, _rightValues.Count);
 
-        // HUD - Pokazywanie i ukrywanie pasków przewijania (efekt podpowiedzi)
         LeftChartContainer.PointerEntered += (s, e) => LeftScrollBar.Opacity = 0.8;
         LeftChartContainer.PointerExited += (s, e) => LeftScrollBar.Opacity = 0;
         RightChartContainer.PointerEntered += (s, e) => RightScrollBar.Opacity = 0.8;
@@ -178,19 +170,25 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        // Pobieranie pakietów z MQTT
-        while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
+        // We process all available items, but limit it to prevent UI freezing
+        // if there's a massive backlog.
+        int itemsProcessed = 0;
+        int maxItemsToProcessPerTick = 100;
+
+        while (itemsProcessed < maxItemsToProcessPerTick && MqttService.Instance.Device1Queue.TryDequeue(out var dataL))
         {
-            _leftValues.Add(data.Weight);
-            _leftBuffer.Add(data);
-        }
-        while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
-        {
-            _rightValues.Add(data.Weight);
-            _rightBuffer.Add(data);
+            _leftValues.Add(dataL.Weight);
+            _leftBuffer.Add(dataL);
+            
+            if (MqttService.Instance.Device2Queue.TryDequeue(out var dataR))
+            {
+                 _rightValues.Add(dataR.Weight);
+                 _rightBuffer.Add(dataR);
+            }
+            itemsProcessed++;
         }
 
-        // Bezpieczny limit punktów trzymanych w pamięci wykresu
+
         int maxCapacity = 4000;
         while (_leftValues.Count > maxCapacity) _leftValues.RemoveAt(0);
         while (_rightValues.Count > maxCapacity) _rightValues.RemoveAt(0);
@@ -198,17 +196,22 @@ public partial class DataView : UserControl, IDisposable
         while (_leftBuffer.Count > BufferSize) _leftBuffer.RemoveAt(0);
         while (_rightBuffer.Count > BufferSize) _rightBuffer.RemoveAt(0);
 
-        // --- MANIPULACJA OSIAMI I SUWAKAMI ---
         ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
         ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
 
-        // Wyliczanie statystyk biomechanicznych
         _updateCounter++;
         if (_updateCounter >= 10 && (_leftBuffer.Count > 0 || _rightBuffer.Count > 0))
         {
             _updateCounter = 0;
-            var result = BiomechanicsService.Calculate(_leftBuffer, _rightBuffer);
-            UpdateStats(result);
+            
+            var leftBufferCopy = new List<(double Weight, DateTime Timestamp)>(_leftBuffer);
+            var rightBufferCopy = new List<(double Weight, DateTime Timestamp)>(_rightBuffer);
+
+            Task.Run(() =>
+            {
+                var result = BiomechanicsService.Calculate(leftBufferCopy, rightBufferCopy);
+                UpdateStats(result); 
+            });
         }
     }
 
@@ -220,37 +223,32 @@ public partial class DataView : UserControl, IDisposable
         scrollBar.Maximum = maxScrollValue;
         scrollBar.ViewportSize = ViewWindowSize;
 
-        // POPRAWKA LOGICZNA: Podczas trwania ticku sprawdzamy, czy oś uciekła od prawej granicy.
-        // Jeśli MaxLimit jest mniejszy niż totalPoints (z tolerancją), użytkownik cofnął się w tył -> włączamy tryb historii.
         if (axis.MaxLimit < (totalPoints - 3))
         {
             isHistoryMode = true;
         }
 
-        // JESTEŚMY NA PRAWEJ KRAWĘDZI (Tryb Live): Wykres sam płynnie nadąża za nowymi próbkami
         if (!isHistoryMode)
         {
             _isUpdatingFromScroll = true;
             scrollBar.Value = maxScrollValue;
             axis.MinLimit = maxScrollValue;
             axis.MaxLimit = totalPoints;
+            _isWindowUpdating = false;
             _isUpdatingFromScroll = false;
         }
         else if (!_isUpdatingFromScroll)
         {
-            // JESTEŚMY W HISTORII (Zamrożenie): C# nie dotyka limitów osi wykresu! 
-            // Jedynie aktualizuje pozycję kciuka dolnego suwaka, dopasowując go do miejsca, w które użytkownik przesunął wykres myszką.
             scrollBar.Value = axis.MinLimit ?? 0;
         }
     }
+    
+    private bool _isWindowUpdating = false;
 
-    // TA METODA ODPOWIADA ZA POWRÓT DO LIVE: Wywoływana dopiero w momencie puszczenia przycisku myszy (PointerReleased)
     private void CheckIfReturnToLive(Axis axis, ref bool isHistoryMode, int totalPoints)
     {
         if (totalPoints <= ViewWindowSize) return;
 
-        // Jeśli po zakończeniu przeciągania myszką prawa krawędź osi (MaxLimit) dotyka lub przekracza koniec danych,
-        // wyłączamy tryb historii i natychmiast przywracamy autoscroll.
         if (axis.MaxLimit >= (totalPoints - 5))
         {
             isHistoryMode = false;
@@ -259,14 +257,12 @@ public partial class DataView : UserControl, IDisposable
         }
         else
         {
-            // Jeśli użytkownik puścił myszkę głęboko w historii, wykres zostaje zamrożony w tym miejscu.
             isHistoryMode = true;
             StatusText.Text = "Status: Przeglądanie danych historycznych sesji.";
             StatusText.Foreground = Brushes.Cyan;
         }
     }
 
-    // OBSŁUGA RĘCZNEGO PRZESUWANIA SUWAKIEM POD SPODEM
     private void LeftScrollBar_Scroll(object? sender, ScrollEventArgs e)
     {
         if (_isUpdatingFromScroll) return;

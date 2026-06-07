@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Server;
@@ -11,28 +12,25 @@ namespace UI_Test_Avalonia;
 
 public sealed class MqttService
 {
-    // --- Singleton Implementation ---
     private static readonly Lazy<MqttService> lazy = new(() => new MqttService());
     public static MqttService Instance => lazy.Value;
 
     private MqttServer? _mqttServer;
+    private CancellationTokenSource? _cancellationTokenSource;
 
-    // --- Public Data Access ---
-    
+    private readonly ConcurrentQueue<(double left, double right, DateTime timestamp)> _internalSampleBuffer = new();
+
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device1Queue { get; } = new();
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> Device2Queue { get; } = new();
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> SumQueue { get; } = new();
 
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
     
-    private double _lastWeight1 = 0;
-    private double _lastWeight2 = 0;
+    // Auto-adaptive drip feed delay
+    private double _currentDripFeedDelayMs = 12.5; 
 
-    private string deviceOneId = "Left";
-    private string deviceTwoId = "Right";
     private MqttService()
     {
-        // Private constructor for singleton
     }
 
     public async Task StartAsync()
@@ -57,8 +55,6 @@ public sealed class MqttService
             {
                 var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
                 var topic = e.ApplicationMessage.Topic;
-                
-                Debug.WriteLine($"[MqttService] RAW MQTT Packet received on {topic}: '{payload}'");
 
                 if (topic == "esp32/scale/telemetry")
                 {
@@ -66,34 +62,52 @@ public sealed class MqttService
                     {
                         using var document = JsonDocument.Parse(payload);
                         
-                        if (document.RootElement.TryGetProperty("deviceId", out var idElement) && 
-                            document.RootElement.TryGetProperty("weight", out var weightElement) &&
-                            document.RootElement.TryGetProperty("timestamp", out var timestampElement))
+                        if (document.RootElement.TryGetProperty("timestamp_s", out var tsSecElement) &&
+                            document.RootElement.TryGetProperty("left", out var leftElement) &&
+                            document.RootElement.TryGetProperty("right", out var rightElement))
                         {
-                            var deviceId = idElement.GetString();
-                            var weight = weightElement.GetDouble();
-                            var timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampElement.GetInt64()).DateTime.ToLocalTime();
-                            
-                            LastPacketTime = DateTime.Now;
+                            long ts_s = tsSecElement.GetInt64();
+                            long ts_ms = document.RootElement.TryGetProperty("timestamp_ms", out var tsMsElement) ? tsMsElement.GetInt64() : 0;
 
-                            if (deviceId == deviceOneId)
-                            {
-                                _lastWeight1 = weight;
-                                Device1Queue.Enqueue((weight, timestamp));
-                            }
-                            else if (deviceId == deviceTwoId)
-                            {
-                                _lastWeight2 = weight;
-                                Device2Queue.Enqueue((weight, timestamp));
-                            }
+                            var baseTimestamp = DateTimeOffset.FromUnixTimeSeconds(ts_s).DateTime.ToLocalTime().AddMilliseconds(ts_ms);
                             
-                            var sum = _lastWeight1 + _lastWeight2;
-                            SumQueue.Enqueue((sum, DateTime.Now));
+                            // Auto-detect if hardware is running at 10Hz or 80Hz
+                            var now = DateTime.Now;
+                            if (LastPacketTime != DateTime.MinValue)
+                            {
+                                int arrCount = leftElement.GetArrayLength();
+                                if (arrCount > 0)
+                                {
+                                    double timeSinceLastPacket = (now - LastPacketTime).TotalMilliseconds;
+                                    double calculatedDelay = timeSinceLastPacket / arrCount;
+                                    
+                                    // Clamp between 10ms (100Hz) and 120ms (~8Hz)
+                                    if (calculatedDelay >= 10 && calculatedDelay <= 120)
+                                    {
+                                        // Smooth transition for the delay
+                                        _currentDripFeedDelayMs = (_currentDripFeedDelayMs * 0.7) + (calculatedDelay * 0.3);
+                                    }
+                                }
+                            }
+                            LastPacketTime = now;
+
+                            if (leftElement.ValueKind == JsonValueKind.Array && rightElement.ValueKind == JsonValueKind.Array)
+                            {
+                                int count = Math.Min(leftElement.GetArrayLength(), rightElement.GetArrayLength());
+                                for (int i = 0; i < count; i++)
+                                {
+                                    double leftWeight = leftElement[i].GetDouble();
+                                    double rightWeight = rightElement[i].GetDouble();
+                                    
+                                    var itemTimestamp = baseTimestamp.AddMilliseconds(i * _currentDripFeedDelayMs);
+                                    _internalSampleBuffer.Enqueue((leftWeight, rightWeight, itemTimestamp));
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                         Debug.WriteLine($"[MqttService] Failed to parse JSON: {ex.Message}");
+                         Debug.WriteLine($"[MqttService] Failed to parse JSON. Payload size: {payload.Length} bytes. Error: {ex.Message}");
                     }
                 }
                 
@@ -102,6 +116,9 @@ public sealed class MqttService
 
             await _mqttServer.StartAsync();
             Debug.WriteLine("[MqttService] MQTT Server started successfully on port 1883.");
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            Task.Run(() => DripFeedSamplesToUI(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
         }
         catch(Exception ex)
         {
@@ -109,11 +126,50 @@ public sealed class MqttService
         }
     }
 
+    private async Task DripFeedSamplesToUI(CancellationToken token)
+    {
+        Debug.WriteLine("[MqttService] Drip-feed task started.");
+        
+        var sw = Stopwatch.StartNew();
+        double expectedTotalMs = 0;
+
+        while (!token.IsCancellationRequested)
+        {
+            if (_internalSampleBuffer.TryDequeue(out var sample))
+            {
+                Device1Queue.Enqueue((sample.left, sample.timestamp));
+                Device2Queue.Enqueue((sample.right, sample.timestamp));
+                SumQueue.Enqueue((sample.left + sample.right, sample.timestamp));
+                
+                expectedTotalMs += _currentDripFeedDelayMs;
+
+                double delayNeeded = expectedTotalMs - sw.Elapsed.TotalMilliseconds;
+                
+                if (delayNeeded > 0)
+                {
+                    await Task.Delay((int)delayNeeded, token);
+                }
+                else if (delayNeeded < -200) 
+                {
+                    expectedTotalMs = sw.Elapsed.TotalMilliseconds;
+                }
+            }
+            else
+            {
+                await Task.Delay(10, token);
+                sw.Restart();
+                expectedTotalMs = 0;
+            }
+        }
+        Debug.WriteLine("[MqttService] Drip-feed task stopped.");
+    }
+
     public async Task StopAsync()
     {
         if (_mqttServer != null && _mqttServer.IsStarted)
         {
             Debug.WriteLine("[MqttService] Stopping MQTT Server...");
+            _cancellationTokenSource?.Cancel();
             await _mqttServer.StopAsync();
             _mqttServer.Dispose();
             Debug.WriteLine("[MqttService] MQTT Server stopped.");

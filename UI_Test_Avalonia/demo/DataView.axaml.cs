@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace UI_Test_Avalonia;
@@ -21,26 +22,29 @@ public partial class DataView : UserControl, IDisposable
     public event EventHandler? BackClicked;
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
-    
+    private bool _isRecording = false;
+
     private readonly ObservableCollection<double> _leftValues = new();
     private readonly ObservableCollection<double> _rightValues = new();
 
     private readonly List<(double Weight, DateTime Timestamp)> _leftBuffer = new();
     private readonly List<(double Weight, DateTime Timestamp)> _rightBuffer = new();
-    private const int BufferSize = 200; 
+    private const int BufferSize = 200;
     private int _updateCounter = 0;
 
     public ObservableCollection<ISeries> LeftChartSeries { get; set; }
     public ObservableCollection<ISeries> RightChartSeries { get; set; }
-    
+
     public Axis[] XAxesLeft { get; set; }
     public Axis[] XAxesRight { get; set; }
     public Axis[] YAxes { get; set; }
+    private readonly Axis _yAxis; 
+
     public SolidColorPaint LegendPaint { get; set; } = new(SKColors.White);
 
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
-    private const int ViewWindowSize = 100; 
+    private const int ViewWindowSize = 200;
 
     private bool _leftIsHistoryMode = false;
     private bool _rightIsHistoryMode = false;
@@ -52,6 +56,33 @@ public partial class DataView : UserControl, IDisposable
         Debug.WriteLine("[DataView] Constructor called.");
 
         BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
+
+        StartRecordingButton.Click += (s, e) =>
+        {
+            _isRecording = true;
+            _leftValues.Clear();
+            _rightValues.Clear();
+            _leftBuffer.Clear();
+            _rightBuffer.Clear();
+            
+            // Reset Y-axis to the default 0-200 range on new recording
+            _yAxis.MaxLimit = 200;
+            _yAxis.MinLimit = 0;
+
+            StartRecordingButton.IsVisible = false;
+            StopRecordingButton.IsVisible = true;
+            StatusText.Text = "Status: Nagrywanie...";
+            StatusText.Foreground = Brushes.Red;
+        };
+
+        StopRecordingButton.Click += (s, e) =>
+        {
+            _isRecording = false;
+            StartRecordingButton.IsVisible = true;
+            StopRecordingButton.IsVisible = false;
+            StatusText.Text = "Status: Nagrywanie zatrzymane.";
+            StatusText.Foreground = Brushes.Cyan;
+        };
 
         SaveSessionButton.Click += (s, e) =>
         {
@@ -90,7 +121,7 @@ public partial class DataView : UserControl, IDisposable
                     new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(0), // Disable animations for live data
+                AnimationsSpeed = TimeSpan.FromMilliseconds(0),
                 EasingFunction = null
             }
         };
@@ -108,7 +139,7 @@ public partial class DataView : UserControl, IDisposable
                     new[] { rightColor.WithAlpha(40), rightColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(0), // Disable animations for live data
+                AnimationsSpeed = TimeSpan.FromMilliseconds(0),
                 EasingFunction = null
             }
         };
@@ -128,14 +159,17 @@ public partial class DataView : UserControl, IDisposable
         XAxesLeft = new Axis[] { _leftXAxis };
         XAxesRight = new Axis[] { _rightXAxis };
 
-        YAxes = new Axis[] {
-            new Axis {
-                LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
-                TextSize = 11,
-                Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 }
-            }
+        // Initialize the Y-axis with the default range
+        _yAxis = new Axis
+        {
+            LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
+            TextSize = 11,
+            Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
+            SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 },
+            MinLimit = 0,
+            MaxLimit = 200
         };
+        YAxes = new Axis[] { _yAxis };
 
         DataContext = this;
 
@@ -163,31 +197,54 @@ public partial class DataView : UserControl, IDisposable
     {
         bool isCurrentlyConnected = (DateTime.Now - MqttService.Instance.LastPacketTime).TotalMilliseconds < 4000;
 
-        if (isCurrentlyConnected != _isConnected)
+        if (!_isRecording)
         {
-            _isConnected = isCurrentlyConnected;
-            StatusText.Text = _isConnected ? "Status: Pobieranie danych z platform..." : "Status: Połączenie przerwane. Oczekiwanie na ESP32...";
-            StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
+            if (isCurrentlyConnected != _isConnected)
+            {
+                _isConnected = isCurrentlyConnected;
+                StatusText.Text = _isConnected ? "Status: Gotowy do nagrywania." : "Status: Połączenie przerwane. Oczekiwanie na ESP32...";
+                StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
+            }
+            while (MqttService.Instance.Device1Queue.TryDequeue(out _)) { }
+            while (MqttService.Instance.Device2Queue.TryDequeue(out _)) { }
+            return;
         }
 
-        // We process all available items, but limit it to prevent UI freezing
-        // if there's a massive backlog.
+        // --- Recording Logic ---
         int itemsProcessed = 0;
-        int maxItemsToProcessPerTick = 100;
+        int maxItemsToProcessPerTick = 200; 
+
+        double newMax = _yAxis.MaxLimit ?? 200;
+        bool maxChanged = false;
 
         while (itemsProcessed < maxItemsToProcessPerTick && MqttService.Instance.Device1Queue.TryDequeue(out var dataL))
         {
             _leftValues.Add(dataL.Weight);
             _leftBuffer.Add(dataL);
-            
+            if (dataL.Weight > newMax)
+            {
+                newMax = dataL.Weight;
+                maxChanged = true;
+            }
+
             if (MqttService.Instance.Device2Queue.TryDequeue(out var dataR))
             {
-                 _rightValues.Add(dataR.Weight);
-                 _rightBuffer.Add(dataR);
+                _rightValues.Add(dataR.Weight);
+                _rightBuffer.Add(dataR);
+                if (dataR.Weight > newMax)
+                {
+                    newMax = dataR.Weight;
+                    maxChanged = true;
+                }
             }
             itemsProcessed++;
         }
 
+        if (maxChanged)
+        {
+            // Set the new max limit with a 10% buffer
+            _yAxis.MaxLimit = newMax * 1.1;
+        }
 
         int maxCapacity = 4000;
         while (_leftValues.Count > maxCapacity) _leftValues.RemoveAt(0);
@@ -203,14 +260,14 @@ public partial class DataView : UserControl, IDisposable
         if (_updateCounter >= 10 && (_leftBuffer.Count > 0 || _rightBuffer.Count > 0))
         {
             _updateCounter = 0;
-            
+
             var leftBufferCopy = new List<(double Weight, DateTime Timestamp)>(_leftBuffer);
             var rightBufferCopy = new List<(double Weight, DateTime Timestamp)>(_rightBuffer);
 
             Task.Run(() =>
             {
                 var result = BiomechanicsService.Calculate(leftBufferCopy, rightBufferCopy);
-                UpdateStats(result); 
+                UpdateStats(result);
             });
         }
     }
@@ -234,7 +291,6 @@ public partial class DataView : UserControl, IDisposable
             scrollBar.Value = maxScrollValue;
             axis.MinLimit = maxScrollValue;
             axis.MaxLimit = totalPoints;
-            _isWindowUpdating = false;
             _isUpdatingFromScroll = false;
         }
         else if (!_isUpdatingFromScroll)
@@ -242,8 +298,6 @@ public partial class DataView : UserControl, IDisposable
             scrollBar.Value = axis.MinLimit ?? 0;
         }
     }
-    
-    private bool _isWindowUpdating = false;
 
     private void CheckIfReturnToLive(Axis axis, ref bool isHistoryMode, int totalPoints)
     {
@@ -252,8 +306,11 @@ public partial class DataView : UserControl, IDisposable
         if (axis.MaxLimit >= (totalPoints - 5))
         {
             isHistoryMode = false;
-            StatusText.Text = "Status: Pobieranie danych z platform...";
-            StatusText.Foreground = Brushes.Green;
+            if (_isRecording)
+            {
+                StatusText.Text = "Status: Nagrywanie...";
+                StatusText.Foreground = Brushes.Red;
+            }
         }
         else
         {

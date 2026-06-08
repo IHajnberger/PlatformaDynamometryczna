@@ -86,7 +86,12 @@
                     <Grid RowDefinitions="Auto, *">
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
                             <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
-                            <Button x:Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>                        </DockPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                                <Button x:Name="StartRecordingButton" Content="Zacznij nagrywać" Classes="ModernCard Accent" CornerRadius="6" Padding="12,5"/>
+                                <Button x:Name="StopRecordingButton" Content="Zatrzymaj nagrywanie" Classes="ModernCard" Background="#ef4444" CornerRadius="6" Padding="12,5" IsVisible="False"/>
+                                <Button x:Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5"/>
+                            </StackPanel>
+                        </DockPanel>
                         
                         <Grid Grid.Row="1" ColumnDefinitions="1*, 1*">
                             

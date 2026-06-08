@@ -229,8 +229,8 @@ void loop() {
               if (millis() - lastSimulatedRead >= 12) {
                   lastSimulatedRead = millis();
                   float timeSec = millis() / 1000.0;
-                  batchLeft[batchIndex] = 50.0 + 50.0 * sin(2.0 * PI * 0.5 * timeSec);
-                  batchRight[batchIndex] = 50.0 + 50.0 * cos(2.0 * PI * 0.5 * timeSec);
+                  batchLeft[batchIndex] = 100.0 + 100.0 * sin(2.0 * PI * 0.5 * timeSec);
+                  batchRight[batchIndex] = 100.0 + 100.0 * cos(2.0 * PI * 0.5 * timeSec);
                   gotNewData = true;
               }
           }

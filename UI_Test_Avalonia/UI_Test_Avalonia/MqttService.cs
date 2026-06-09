@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Linq;
 using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Server;
@@ -24,12 +25,6 @@ public sealed class MqttService
     public ConcurrentQueue<(double Weight, DateTime Timestamp)> SumQueue { get; } = new();
 
     public DateTime LastPacketTime { get; private set; } = DateTime.MinValue;
-    
-    private double _lastWeight1 = 0;
-    private double _lastWeight2 = 0;
-
-    private string deviceOneId = "Left";
-    private string deviceTwoId = "Right";
     private MqttService()
     {
         // Private constructor for singleton
@@ -65,30 +60,48 @@ public sealed class MqttService
                     try
                     {
                         using var document = JsonDocument.Parse(payload);
-                        
-                        if (document.RootElement.TryGetProperty("deviceId", out var idElement) && 
-                            document.RootElement.TryGetProperty("weight", out var weightElement) &&
-                            document.RootElement.TryGetProperty("timestamp", out var timestampElement))
-                        {
-                            var deviceId = idElement.GetString();
-                            var weight = weightElement.GetDouble();
-                            var timestamp = DateTimeOffset.FromUnixTimeSeconds(timestampElement.GetInt64()).DateTime.ToLocalTime();
-                            
-                            LastPacketTime = DateTime.Now;
+                        var root = document.RootElement;
 
-                            if (deviceId == deviceOneId)
+                        // New batch format: { "timestamp_s": ..., "timestamp_ms": ..., "left": [...], "right": [...] }
+                        if (root.TryGetProperty("timestamp_s", out var tsSecElement) &&
+                            root.TryGetProperty("timestamp_ms", out var tsMsElement) &&
+                            root.TryGetProperty("left", out var leftArrayElement) &&
+                            root.TryGetProperty("right", out var rightArrayElement) &&
+                            leftArrayElement.ValueKind == JsonValueKind.Array &&
+                            rightArrayElement.ValueKind == JsonValueKind.Array)
+                        {
+                            var seconds = tsSecElement.GetInt64();
+                            var milliseconds = tsMsElement.GetInt32();
+                            var leftArray = leftArrayElement.EnumerateArray().Select(je => je.GetDouble()).ToList();
+                            var rightArray = rightArrayElement.EnumerateArray().Select(je => je.GetDouble()).ToList();
+
+                            if (leftArray.Count > 0 && leftArray.Count == rightArray.Count)
                             {
-                                _lastWeight1 = weight;
-                                Device1Queue.Enqueue((weight, timestamp));
+                                LastPacketTime = DateTime.Now;
+                                
+                                // The timestamp from the ESP marks the END of the batch collection.
+                                var batchEndTimestamp = DateTimeOffset.FromUnixTimeSeconds(seconds).AddMilliseconds(milliseconds).DateTime.ToLocalTime();
+                                
+                                // The ESP code sends samples approx. every 12ms in simulation mode.
+                                // We must back-calculate the timestamp for each sample in the batch.
+                                const int SAMPLE_PERIOD_MS = 12; 
+                                int batchSize = leftArray.Count;
+
+                                for (int i = 0; i < batchSize; i++)
+                                {
+                                    var leftWeight = leftArray[i];
+                                    var rightWeight = rightArray[i];
+                                    var sum = leftWeight + rightWeight;
+
+                                    // Calculate timestamp for this specific sample by offsetting from the end time
+                                    int timeOffset = (batchSize - 1 - i) * SAMPLE_PERIOD_MS;
+                                    var sampleTimestamp = batchEndTimestamp.AddMilliseconds(-timeOffset);
+
+                                    Device1Queue.Enqueue((leftWeight, sampleTimestamp));
+                                    Device2Queue.Enqueue((rightWeight, sampleTimestamp));
+                                    SumQueue.Enqueue((sum, sampleTimestamp));
+                                }
                             }
-                            else if (deviceId == deviceTwoId)
-                            {
-                                _lastWeight2 = weight;
-                                Device2Queue.Enqueue((weight, timestamp));
-                            }
-                            
-                            var sum = _lastWeight1 + _lastWeight2;
-                            SumQueue.Enqueue((sum, DateTime.Now));
                         }
                     }
                     catch (Exception ex)

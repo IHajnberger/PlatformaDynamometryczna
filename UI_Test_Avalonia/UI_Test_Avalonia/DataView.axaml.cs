@@ -91,7 +91,7 @@ public partial class DataView : UserControl, IDisposable
                     new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
+                AnimationsSpeed = TimeSpan.Zero, // Wyłączamy animacje LC - tworzymy własny płynny strumień
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
             }
         };
@@ -109,7 +109,7 @@ public partial class DataView : UserControl, IDisposable
                     new[] { rightColor.WithAlpha(40), rightColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
+                AnimationsSpeed = TimeSpan.Zero, // Wyłączamy animacje LC - tworzymy własny płynny strumień
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
             }
         };
@@ -190,8 +190,19 @@ public partial class DataView : UserControl, IDisposable
         _renderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
         _renderTimer.Tick += RenderTimer_Tick;
 
-        AttachedToVisualTree += (_, _) => _renderTimer.Start();
         DetachedFromVisualTree += (_, _) => _renderTimer.Stop();
+
+        // Ustawiamy początkowy stan przycisku na "Start"
+        StopSessionButton.Content = new Avalonia.Controls.StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 8,
+            Children =
+            {
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
+                new Avalonia.Controls.TextBlock { Text = "Start", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+            }
+        };
 
         // Butony do kontroli sesji
         StopSessionButton.Click += (s, e) =>
@@ -212,6 +223,23 @@ public partial class DataView : UserControl, IDisposable
             }
             else
             {
+                // --- ROZPOCZĘCIE NOWEJ SESJI (NAGRYWANIA) ---
+                // 1. Czyścimy wykresy i bufory analityczne
+                _leftValues.Clear();
+                _rightValues.Clear();
+                _leftBuffer.Clear();
+                _rightBuffer.Clear();
+
+                // 2. Opróżniamy zaległe dane z MQTT, żeby wystartować od teraz
+                MqttService.Instance.Device1Queue.Clear();
+                MqttService.Instance.Device2Queue.Clear();
+
+                // 3. Resetujemy widok osi
+                _leftXAxis.MinLimit = 0;
+                _leftXAxis.MaxLimit = ViewWindowSize;
+                _rightXAxis.MinLimit = 0;
+                _rightXAxis.MaxLimit = ViewWindowSize;
+
                 _renderTimer.Start();
                 StopSessionButton.Content = new Avalonia.Controls.StackPanel
                 {
@@ -233,7 +261,18 @@ public partial class DataView : UserControl, IDisposable
 
         ClearAllButton.Click += (s, e) =>
         {
-
+            _leftValues.Clear();
+            _rightValues.Clear();
+            _leftBuffer.Clear();
+            _rightBuffer.Clear();
+            
+            MqttService.Instance.Device1Queue.Clear();
+            MqttService.Instance.Device2Queue.Clear();
+            
+            _leftXAxis.MinLimit = 0;
+            _leftXAxis.MaxLimit = ViewWindowSize;
+            _rightXAxis.MinLimit = 0;
+            _rightXAxis.MaxLimit = ViewWindowSize;
         };
 
     }
@@ -280,16 +319,35 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        // Pobieranie pakietów z MQTT
-        while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
+        // Dawkowanie danych na wykres (Płynny Strumień - Elastic Buffer)
+        // Eliminuje mikro-lagi: dynamicznie reguluje tempo, aby kolejka nigdy nie opustoszała 
+        // przed przyjściem nowej paczki z MQTT, co gwarantuje płynny ruch oscyloskopu.
+        int leftQueueCount = MqttService.Instance.Device1Queue.Count;
+        int pointsToProcessL = 0;
+        if (leftQueueCount > 200) pointsToProcessL = leftQueueCount / 10; // Catch-up dla opóźnień sieci
+        else if (leftQueueCount > 40) pointsToProcessL = 2; // Szybsze tempo
+        else if (leftQueueCount > 0) pointsToProcessL = 1;  // Płynne zwalnianie
+        
+        int pointsProcessedL = 0;
+        for (int i = 0; i < pointsToProcessL && MqttService.Instance.Device1Queue.TryDequeue(out var data); i++)
         {
             _leftValues.Add(data.Weight);
             _leftBuffer.Add(data);
+            pointsProcessedL++;
         }
-        while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
+
+        int rightQueueCount = MqttService.Instance.Device2Queue.Count;
+        int pointsToProcessR = 0;
+        if (rightQueueCount > 200) pointsToProcessR = rightQueueCount / 10;
+        else if (rightQueueCount > 40) pointsToProcessR = 2;
+        else if (rightQueueCount > 0) pointsToProcessR = 1;
+        
+        int pointsProcessedR = 0;
+        for (int i = 0; i < pointsToProcessR && MqttService.Instance.Device2Queue.TryDequeue(out var data); i++)
         {
             _rightValues.Add(data.Weight);
             _rightBuffer.Add(data);
+            pointsProcessedR++;
         }
 
         int maxCapacity = 4000;
@@ -299,8 +357,12 @@ public partial class DataView : UserControl, IDisposable
         while (_leftBuffer.Count > BufferSize) _leftBuffer.RemoveAt(0);
         while (_rightBuffer.Count > BufferSize) _rightBuffer.RemoveAt(0);
 
-        ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
-        ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
+        // Oszczędzamy niepotrzebnych przeliczeń UI - przesuwamy oś TYLKO jeśli pojawił się nowy punkt
+        if (pointsProcessedL > 0)
+            ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
+            
+        if (pointsProcessedR > 0)
+            ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
 
         _updateCounter++;
         if (_updateCounter >= 10 && (_leftBuffer.Count > 0 || _rightBuffer.Count > 0))

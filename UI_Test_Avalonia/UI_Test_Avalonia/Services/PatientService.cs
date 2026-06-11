@@ -13,6 +13,10 @@ public class Patient
     public string FullName => $"{FirstName} {LastName}";
     public DateTime BirthDate { get; set; }
     public string Notes { get; set; } = "";
+
+    public string Pin { get; set; } = "";
+
+    public string PhoneNumber { get; set; } = "";
 }
 
 public sealed class PatientService
@@ -47,9 +51,9 @@ public sealed class PatientService
 
         if (_patients.Count == 0)
         {
-            _patients.Add(new Patient { FirstName = "Anna", LastName = "Kowalska", BirthDate = new DateTime(1990, 3, 15) });
-            _patients.Add(new Patient { FirstName = "Jan", LastName = "Nowak", BirthDate = new DateTime(1985, 7, 22) });
-            _patients.Add(new Patient { FirstName = "Maria", LastName = "Wiśniewska", BirthDate = new DateTime(2001, 11, 8) });
+            _patients.Add(new Patient { FirstName = "Anna", LastName = "Kowalska", BirthDate = new DateTime(1990, 3, 15), PhoneNumber = "+48 600 100 200" });
+            _patients.Add(new Patient { FirstName = "Jan", LastName = "Nowak", BirthDate = new DateTime(1985, 7, 22), PhoneNumber = "+48 601 200 300" });
+            _patients.Add(new Patient { FirstName = "Maria", LastName = "Wiśniewska", BirthDate = new DateTime(2001, 11, 8), PhoneNumber = "+48 602 300 400" });
             Save();
         }
     }

@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using LiveChartsCore;
@@ -20,20 +19,18 @@ public partial class DataView : UserControl, IDisposable
     public event EventHandler? BackClicked;
     private readonly DispatcherTimer _renderTimer;
     private bool _isConnected;
-    
-    // Główne kolekcje spięte z LiveCharts
+
     private readonly ObservableCollection<double> _leftValues = new();
     private readonly ObservableCollection<double> _rightValues = new();
 
-    // Głębokie bufory dla kalkulatora parametrów biomechanicznych
     private readonly List<(double Weight, DateTime Timestamp)> _leftBuffer = new();
     private readonly List<(double Weight, DateTime Timestamp)> _rightBuffer = new();
-    private const int BufferSize = 200; 
+    private const int BufferSize = 200;
     private int _updateCounter = 0;
 
     public ObservableCollection<ISeries> LeftChartSeries { get; set; }
     public ObservableCollection<ISeries> RightChartSeries { get; set; }
-    
+
     public Axis[] XAxesLeft { get; set; }
     public Axis[] XAxesRight { get; set; }
     public Axis[] YAxes { get; set; }
@@ -41,12 +38,14 @@ public partial class DataView : UserControl, IDisposable
 
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
-    private const int ViewWindowSize = 100; // Rozmiar widocznego okna punktów
+    private const int ViewWindowSize = 100;
 
-    // Domyślnie aplikacja startuje w trybie Live (HistoryMode = false)
     private bool _leftIsHistoryMode = false;
     private bool _rightIsHistoryMode = false;
     private bool _isUpdatingFromScroll = false;
+
+    // Słownik:
+    private Dictionary<ExerciseParam, Border> _paramBorders = new();
 
     public DataView()
     {
@@ -55,10 +54,30 @@ public partial class DataView : UserControl, IDisposable
 
         BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
 
+        SaveSessionButton.Click += (s, e) =>
+        {
+            var activePatient = PatientService.Instance.ActivePatient;
+            if (activePatient == null)
+            {
+                StatusText.Text = "Status: Wybierz pacjenta przed zapisem sesji!";
+                StatusText.Foreground = Brushes.Orange;
+                return;
+            }
+
+            SessionService.Instance.AddSession(new Session
+            {
+                PatientId = activePatient.Id,
+                ExerciseName = ExerciseService.Instance.ActiveExercise?.Name ?? "Nieznane",
+                Date = DateTime.Now
+            });
+
+            StatusText.Text = $"Status: Sesja zapisana dla {activePatient.FullName}!";
+            StatusText.Foreground = Brushes.Green;
+        };
+
         var leftColor = SKColor.Parse("#3b82f6");
         var rightColor = SKColor.Parse("#f59e0b");
 
-        // Przywrócenie płynnych animacji fali z CubicOut
         LeftChartSeries = new ObservableCollection<ISeries>
         {
             new LineSeries<double>
@@ -72,7 +91,7 @@ public partial class DataView : UserControl, IDisposable
                     new[] { leftColor.WithAlpha(40), leftColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
+                AnimationsSpeed = TimeSpan.Zero, // Wyłączamy animacje LC - tworzymy własny płynny strumień
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
             }
         };
@@ -90,28 +109,34 @@ public partial class DataView : UserControl, IDisposable
                     new[] { rightColor.WithAlpha(40), rightColor.WithAlpha(0) },
                     new SKPoint(0.5f, 0),
                     new SKPoint(0.5f, 1)),
-                AnimationsSpeed = TimeSpan.FromMilliseconds(200),
+                AnimationsSpeed = TimeSpan.Zero, // Wyłączamy animacje LC - tworzymy własny płynny strumień
                 EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
             }
         };
 
-        _leftXAxis = new Axis {
+        _leftXAxis = new Axis
+        {
             TextSize = 0,
             SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
-            MinLimit = 0, MaxLimit = ViewWindowSize
+            MinLimit = 0,
+            MaxLimit = ViewWindowSize
         };
 
-        _rightXAxis = new Axis {
+        _rightXAxis = new Axis
+        {
             TextSize = 0,
             SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
-            MinLimit = 0, MaxLimit = ViewWindowSize
+            MinLimit = 0,
+            MaxLimit = ViewWindowSize
         };
 
         XAxesLeft = new Axis[] { _leftXAxis };
         XAxesRight = new Axis[] { _rightXAxis };
 
-        YAxes = new Axis[] {
-            new Axis {
+        YAxes = new Axis[]
+        {
+            new Axis
+            {
                 LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
                 TextSize = 11,
                 Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
@@ -121,28 +146,167 @@ public partial class DataView : UserControl, IDisposable
 
         DataContext = this;
 
-        // Rejestracja zdarzeń suwaków dolnych
         LeftScrollBar.Scroll += LeftScrollBar_Scroll;
         RightScrollBar.Scroll += RightScrollBar_Scroll;
 
-        // KLUCZOWE: Sprawdzamy stan granicy dopiero PO puszczeniu myszki/palca (koniec interakcji użytkownika)
         LeftChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_leftXAxis, ref _leftIsHistoryMode, _leftValues.Count);
         RightChartContainer.PointerReleased += (s, e) => CheckIfReturnToLive(_rightXAxis, ref _rightIsHistoryMode, _rightValues.Count);
 
-        // HUD - Pokazywanie i ukrywanie pasków przewijania (efekt podpowiedzi)
         LeftChartContainer.PointerEntered += (s, e) => LeftScrollBar.Opacity = 0.8;
         LeftChartContainer.PointerExited += (s, e) => LeftScrollBar.Opacity = 0;
         RightChartContainer.PointerEntered += (s, e) => RightScrollBar.Opacity = 0.8;
         RightChartContainer.PointerExited += (s, e) => RightScrollBar.Opacity = 0;
 
+        UpdateSessionInfo();
+        PatientService.Instance.ActivePatientChanged += (s, e) => Dispatcher.UIThread.Post(UpdateSessionInfo);
+        ExerciseService.Instance.ActiveExerciseChanged += (s, e) => Dispatcher.UIThread.Post(UpdateSessionInfo);
+        
+        // Mapowanie parametrów na Bordery
+        _paramBorders = new Dictionary<ExerciseParam, Border>
+        {
+            { ExerciseParam.PeakForceL,       ParamPeakForceL },
+            { ExerciseParam.PeakForceR,       ParamPeakForceR },
+            { ExerciseParam.MeanForceL,       ParamMeanForceL },
+            { ExerciseParam.MeanForceR,       ParamMeanForceR },
+            { ExerciseParam.LoadRatio,        ParamLoadRatio },
+            { ExerciseParam.AsymmetryIndex,   ParamAsymmetry },
+            { ExerciseParam.RFD,              ParamRFD },
+            { ExerciseParam.TotalForce,       ParamTotalForce },
+            { ExerciseParam.StabilityIndex,   ParamStabilityIndex },
+            { ExerciseParam.SwayVelocity,     ParamSwayVelocity  },
+            { ExerciseParam.ForceVariability, ParamForceVariability },
+            { ExerciseParam.TimeToPeakForce,  ParamTimeToPeak },
+            { ExerciseParam.StabilizationTime, ParamStabilizationTime },
+            { ExerciseParam.WeightTransferSpeed, ParamTransferSpd },
+            { ExerciseParam.FatigueIndex,     ParamFatigueIndex },
+            { ExerciseParam.ControlScore,     ParamControlScore },
+        };
+
+        ExerciseService.Instance.ActiveExerciseChanged += (s, e) =>
+            Dispatcher.UIThread.Post(ApplyExerciseFilter);
+
+        ApplyExerciseFilter();
+
         _renderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
         _renderTimer.Tick += RenderTimer_Tick;
 
-        AttachedToVisualTree += (_, _) => _renderTimer.Start();
         DetachedFromVisualTree += (_, _) => _renderTimer.Stop();
+
+        // Ustawiamy początkowy stan przycisku na "Start"
+        StopSessionButton.Content = new Avalonia.Controls.StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 8,
+            Children =
+            {
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
+                new Avalonia.Controls.TextBlock { Text = "Start", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+            }
+        };
+
+        // Butony do kontroli sesji
+        StopSessionButton.Click += (s, e) =>
+        {
+            if (_renderTimer.IsEnabled)
+            {
+                _renderTimer.Stop();
+                StopSessionButton.Content = new Avalonia.Controls.StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    Spacing = 8,
+                    Children =
+            {
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
+                new Avalonia.Controls.TextBlock { Text = "Start", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+            }
+                };
+            }
+            else
+            {
+                // --- ROZPOCZĘCIE NOWEJ SESJI (NAGRYWANIA) ---
+                // 1. Czyścimy wykresy i bufory analityczne
+                _leftValues.Clear();
+                _rightValues.Clear();
+                _leftBuffer.Clear();
+                _rightBuffer.Clear();
+
+                // 2. Opróżniamy zaległe dane z MQTT, żeby wystartować od teraz
+                MqttService.Instance.Device1Queue.Clear();
+                MqttService.Instance.Device2Queue.Clear();
+
+                // 3. Resetujemy widok osi
+                _leftXAxis.MinLimit = 0;
+                _leftXAxis.MaxLimit = ViewWindowSize;
+                _rightXAxis.MinLimit = 0;
+                _rightXAxis.MaxLimit = ViewWindowSize;
+
+                _renderTimer.Start();
+                StopSessionButton.Content = new Avalonia.Controls.StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    Spacing = 8,
+                    Children =
+            {
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Stop, FontSize = 16, Foreground = Brushes.Orange },
+                new Avalonia.Controls.TextBlock { Text = "Stop", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+            }
+                };
+            }
+        };
+
+        MarkPeakButton.Click += (s, e) =>
+        {
+
+        };
+
+        ClearAllButton.Click += (s, e) =>
+        {
+            _leftValues.Clear();
+            _rightValues.Clear();
+            _leftBuffer.Clear();
+            _rightBuffer.Clear();
+            
+            MqttService.Instance.Device1Queue.Clear();
+            MqttService.Instance.Device2Queue.Clear();
+            
+            _leftXAxis.MinLimit = 0;
+            _leftXAxis.MaxLimit = ViewWindowSize;
+            _rightXAxis.MinLimit = 0;
+            _rightXAxis.MaxLimit = ViewWindowSize;
+        };
+
     }
 
     public void Dispose() => _renderTimer.Stop();
+
+    private void ApplyExerciseFilter()
+    {
+        var exercise = ExerciseService.Instance.ActiveExercise;
+
+        // Jeśli brak ćwiczenia — pokaż wszystko
+        if (exercise == null)
+        {
+            foreach (var border in _paramBorders.Values)
+                border.IsVisible = true;
+            return;
+        }
+
+        // Pokaż tylko te które są w Params ćwiczenia
+        foreach (var (param, border) in _paramBorders)
+            border.IsVisible = exercise.Params.Contains(param);
+    }
+
+    private void UpdateSessionInfo()
+    {
+        var patient = PatientService.Instance.ActivePatient;
+        var exercise = ExerciseService.Instance.ActiveExercise;
+
+        SessionPatientText.Text = patient != null ? patient.FullName : "Nie wybrano";
+        SessionExerciseText.Text = exercise != null ? exercise.Name : "Nie wybrano";
+
+        SessionPatientText.Foreground = patient != null ? Brushes.White : Brushes.Orange;
+        SessionExerciseText.Foreground = exercise != null ? Brushes.White : Brushes.Orange;
+    }
 
     private void RenderTimer_Tick(object? sender, EventArgs e)
     {
@@ -155,19 +319,37 @@ public partial class DataView : UserControl, IDisposable
             StatusText.Foreground = _isConnected ? Brushes.Green : Brushes.Orange;
         }
 
-        // Pobieranie pakietów z MQTT
-        while (MqttService.Instance.Device1Queue.TryDequeue(out var data))
+        // Dawkowanie danych na wykres (Płynny Strumień - Elastic Buffer)
+        // Eliminuje mikro-lagi: dynamicznie reguluje tempo, aby kolejka nigdy nie opustoszała 
+        // przed przyjściem nowej paczki z MQTT, co gwarantuje płynny ruch oscyloskopu.
+        int leftQueueCount = MqttService.Instance.Device1Queue.Count;
+        int pointsToProcessL = 0;
+        if (leftQueueCount > 200) pointsToProcessL = leftQueueCount / 10; // Catch-up dla opóźnień sieci
+        else if (leftQueueCount > 40) pointsToProcessL = 2; // Szybsze tempo
+        else if (leftQueueCount > 0) pointsToProcessL = 1;  // Płynne zwalnianie
+        
+        int pointsProcessedL = 0;
+        for (int i = 0; i < pointsToProcessL && MqttService.Instance.Device1Queue.TryDequeue(out var data); i++)
         {
             _leftValues.Add(data.Weight);
             _leftBuffer.Add(data);
+            pointsProcessedL++;
         }
-        while (MqttService.Instance.Device2Queue.TryDequeue(out var data))
+
+        int rightQueueCount = MqttService.Instance.Device2Queue.Count;
+        int pointsToProcessR = 0;
+        if (rightQueueCount > 200) pointsToProcessR = rightQueueCount / 10;
+        else if (rightQueueCount > 40) pointsToProcessR = 2;
+        else if (rightQueueCount > 0) pointsToProcessR = 1;
+        
+        int pointsProcessedR = 0;
+        for (int i = 0; i < pointsToProcessR && MqttService.Instance.Device2Queue.TryDequeue(out var data); i++)
         {
             _rightValues.Add(data.Weight);
             _rightBuffer.Add(data);
+            pointsProcessedR++;
         }
 
-        // Bezpieczny limit punktów trzymanych w pamięci wykresu
         int maxCapacity = 4000;
         while (_leftValues.Count > maxCapacity) _leftValues.RemoveAt(0);
         while (_rightValues.Count > maxCapacity) _rightValues.RemoveAt(0);
@@ -175,11 +357,13 @@ public partial class DataView : UserControl, IDisposable
         while (_leftBuffer.Count > BufferSize) _leftBuffer.RemoveAt(0);
         while (_rightBuffer.Count > BufferSize) _rightBuffer.RemoveAt(0);
 
-        // --- MANIPULACJA OSIAMI I SUWAKAMI ---
-        ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
-        ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
+        // Oszczędzamy niepotrzebnych przeliczeń UI - przesuwamy oś TYLKO jeśli pojawił się nowy punkt
+        if (pointsProcessedL > 0)
+            ProcessAxisTick(_leftValues.Count, _leftXAxis, LeftScrollBar, ref _leftIsHistoryMode);
+            
+        if (pointsProcessedR > 0)
+            ProcessAxisTick(_rightValues.Count, _rightXAxis, RightScrollBar, ref _rightIsHistoryMode);
 
-        // Wyliczanie statystyk biomechanicznych
         _updateCounter++;
         if (_updateCounter >= 10 && (_leftBuffer.Count > 0 || _rightBuffer.Count > 0))
         {
@@ -197,14 +381,9 @@ public partial class DataView : UserControl, IDisposable
         scrollBar.Maximum = maxScrollValue;
         scrollBar.ViewportSize = ViewWindowSize;
 
-        // POPRAWKA LOGICZNA: Podczas trwania ticku sprawdzamy, czy oś uciekła od prawej granicy.
-        // Jeśli MaxLimit jest mniejszy niż totalPoints (z tolerancją), użytkownik cofnął się w tył -> włączamy tryb historii.
         if (axis.MaxLimit < (totalPoints - 3))
-        {
             isHistoryMode = true;
-        }
 
-        // JESTEŚMY NA PRAWEJ KRAWĘDZI (Tryb Live): Wykres sam płynnie nadąża za nowymi próbkami
         if (!isHistoryMode)
         {
             _isUpdatingFromScroll = true;
@@ -215,19 +394,14 @@ public partial class DataView : UserControl, IDisposable
         }
         else if (!_isUpdatingFromScroll)
         {
-            // JESTEŚMY W HISTORII (Zamrożenie): C# nie dotyka limitów osi wykresu! 
-            // Jedynie aktualizuje pozycję kciuka dolnego suwaka, dopasowując go do miejsca, w które użytkownik przesunął wykres myszką.
             scrollBar.Value = axis.MinLimit ?? 0;
         }
     }
 
-    // TA METODA ODPOWIADA ZA POWRÓT DO LIVE: Wywoływana dopiero w momencie puszczenia przycisku myszy (PointerReleased)
     private void CheckIfReturnToLive(Axis axis, ref bool isHistoryMode, int totalPoints)
     {
         if (totalPoints <= ViewWindowSize) return;
 
-        // Jeśli po zakończeniu przeciągania myszką prawa krawędź osi (MaxLimit) dotyka lub przekracza koniec danych,
-        // wyłączamy tryb historii i natychmiast przywracamy autoscroll.
         if (axis.MaxLimit >= (totalPoints - 5))
         {
             isHistoryMode = false;
@@ -236,35 +410,29 @@ public partial class DataView : UserControl, IDisposable
         }
         else
         {
-            // Jeśli użytkownik puścił myszkę głęboko w historii, wykres zostaje zamrożony w tym miejscu.
             isHistoryMode = true;
             StatusText.Text = "Status: Przeglądanie danych historycznych sesji.";
             StatusText.Foreground = Brushes.Cyan;
         }
     }
 
-    // OBSŁUGA RĘCZNEGO PRZESUWANIA SUWAKIEM POD SPODEM
     private void LeftScrollBar_Scroll(object? sender, ScrollEventArgs e)
     {
         if (_isUpdatingFromScroll) return;
-
         _isUpdatingFromScroll = true;
         _leftXAxis.MinLimit = e.NewValue;
         _leftXAxis.MaxLimit = e.NewValue + ViewWindowSize;
         _isUpdatingFromScroll = false;
-
         CheckIfReturnToLive(_leftXAxis, ref _leftIsHistoryMode, _leftValues.Count);
     }
 
     private void RightScrollBar_Scroll(object? sender, ScrollEventArgs e)
     {
         if (_isUpdatingFromScroll) return;
-
         _isUpdatingFromScroll = true;
         _rightXAxis.MinLimit = e.NewValue;
         _rightXAxis.MaxLimit = e.NewValue + ViewWindowSize;
         _isUpdatingFromScroll = false;
-
         CheckIfReturnToLive(_rightXAxis, ref _rightIsHistoryMode, _rightValues.Count);
     }
 
@@ -272,22 +440,66 @@ public partial class DataView : UserControl, IDisposable
     {
         Dispatcher.UIThread.Post(() =>
         {
+            // Siły maksymalne
             PeakForceLText.Text = $"{r.PeakForceLeft:F1} kg";
             PeakForceRText.Text = $"{r.PeakForceRight:F1} kg";
+
+            // Siły średnie
             MeanForceLText.Text = $"{r.MeanForceLeft:F1} kg";
             MeanForceRText.Text = $"{r.MeanForceRight:F1} kg";
-            LoadRatioText.Text = $"L:{r.LoadRatioLeft:F1}% R:{r.LoadRatioRight:F1}%";
-            AsymmetryText.Text = $"{r.AsymmetryIndex:F1}%";
-            FlightTimeText.Text = r.FlightTime > 0 ? $"{r.FlightTime:F3} s" : "--";
-            BrakingRFDText.Text = $"{r.BrakingRFD:F1} kg/s";
 
-            SummaryPeakText.Text = $"{r.PeakForceTotal:F1} kg";
-            SummaryMeanText.Text = $"{r.MeanForceTotal:F1} kg";
-            SummaryMinText.Text = $"{Math.Min(r.MinForceLeft, r.MinForceRight):F1} kg";
-            SummaryAsymmetryText.Text = $"{r.AsymmetryIndex:F1}%";
+            // Rozkład obciążenia
+            LoadRatioText.Text =
+                $"L:{r.LoadRatioLeft:F1}%  R:{r.LoadRatioRight:F1}%";
 
-            BalanceLeftText.Text = $"L: {r.LoadRatioLeft:F1}%";
-            BalanceRightText.Text = $"R: {r.LoadRatioRight:F1}%";
+            // Asymetria
+            AsymmetryText.Text =
+                $"{r.AsymmetryIndex:F1}%";
+
+            // Tempo generowania siły
+            RFDText.Text =
+                $"{r.RFD:F1} kg/s";
+
+            TotalForceText.Text =
+                $"{r.TotalForce:F1} kg";
+
+            StabilityIndexText.Text =
+                $"{r.StabilityIndex:F2}";
+
+            StabilizationTimeText.Text =
+                $"{r.StabilizationTime:F2} s";
+
+            TimeToPeakText.Text =
+                $"{r.TimeToPeakForce:F2} s";
+
+            TransferSpeedText.Text =
+                $"{r.WeightTransferSpeed:F1} kg/s";
+
+            SwayVelocityText.Text =
+                $"{r.SwayVelocity:F2}";
+
+            ForceVariabilityText.Text =
+                $"{r.ForceVariability:F2}";
+
+            ControlScoreText.Text =
+                $"{r.ControlScore:F1}%";
+
+            FatigueIndexText.Text =
+                $"{r.FatigueIndex:F1}%";
+
+            // PODSUMOWANIE
+
+            SummaryPeakText.Text =
+                $"{r.PeakForceTotal:F1} kg";
+
+            SummaryMeanText.Text =
+                $"{r.MeanForceTotal:F1} kg";
+
+            SummaryMinText.Text =
+                $"{Math.Min(r.MinForceLeft, r.MinForceRight):F1} kg";
+
+            SummaryAsymmetryText.Text =
+                $"{r.AsymmetryIndex:F1}%";
         }, DispatcherPriority.Render);
     }
 }

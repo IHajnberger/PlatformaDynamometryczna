@@ -47,7 +47,7 @@
             <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
                 <StackPanel Grid.Column="0" Spacing="5">
                     <TextBlock Text="Główny Pulpit" FontSize="32" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
+                    <TextBlock x:Name="TileHeaderText" Text="Wybierz aktywność, aby rozpocząć pracę z pacjentem" FontSize="16" Foreground="Gray"/>
                 </StackPanel>
                 <Button Grid.Column="1"
                         Name="TileLogout"
@@ -63,65 +63,119 @@
                 </Button>
             </Grid>
 
-            <!-- Wybór pacjenta -->
-            <Border x:Name="PatientSelectionPanel" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="20">
-                <Grid ColumnDefinitions="Auto, *, Auto">
+ <!-- Aktywny pacjent + aktywne ćwiczenie -->
+<Border Background="#2d2d2d"
+        BorderBrush="#3d3d3d"
+        BorderThickness="1"
+        CornerRadius="16"
+        Padding="20">
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <fa:SymbolIcon Symbol="People" Foreground="#10b981" FontSize="24"/>
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Aktywny pacjent" FontSize="12" Foreground="Gray"/>
-                            <TextBlock x:Name="ActivePatientLabel" Text="Nie wybrano pacjenta" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
-                        </StackPanel>
-                    </StackPanel>
+    <StackPanel Spacing="16">
 
-                    <Border Grid.Column="1" Margin="30,0" VerticalAlignment="Center">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <TextBox x:Name="PatientSearchBox"
-                                     Watermark="Wyszukaj pacjenta..."
-                                     Height="38"
-                                     VerticalContentAlignment="Center"
-                                     TextChanged="PatientSearchBox_TextChanged">
-                                <TextBox.InnerLeftContent>
-                                    <fa:SymbolIcon Symbol="Find" Margin="10,0,0,0" Foreground="Gray"/>
-                                </TextBox.InnerLeftContent>
-                            </TextBox>
+        <!-- Wybór pacjenta -->
+        <Grid x:Name="PatientSelectionPanel" ColumnDefinitions="190, *, Auto">
 
-                            <Popup x:Name="PatientPopup"
-                               PlacementTarget="{Binding ElementName=PatientSearchBox}"
-                               Placement="Bottom"
-                               IsLightDismissEnabled="True">
-                                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="8" MaxHeight="200">
-                                    <ListBox x:Name="PatientListBox"
-                                             Background="Transparent"
-                                             ItemsSource="{x:Null}"
-                                             SelectionChanged="PatientListBox_SelectionChanged">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="local:Patient">
-                                                <TextBlock Text="{Binding FullName}" Foreground="White" Padding="10,8"/>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </Border>
-                            </Popup>
-                        </Grid>
-                    </Border>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <fa:SymbolIcon Symbol="People" Foreground="#10b981" FontSize="24"/>
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Aktywny pacjent" FontSize="12" Foreground="Gray"/>
+                    <TextBlock x:Name="ActivePatientLabel" Text="Nie wybrano pacjenta" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                </StackPanel>
+            </StackPanel>
 
-                    <Button Grid.Column="2"
-                            x:Name="ClearPatientButton"
-                            Classes="ModernCard"
-                            Padding="10,8"
-                            VerticalAlignment="Center"
-                            IsVisible="False"
-                            Click="ClearPatientButton_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fa:SymbolIcon Symbol="Dismiss" FontSize="14" Foreground="#ef4444"/>
-                            <TextBlock Text="Wyczyść" Foreground="#ef4444" FontSize="13"/>
-                        </StackPanel>
-                    </Button>
+            <Border Grid.Column="1" Margin="30,0" VerticalAlignment="Center">
+                <Grid ColumnDefinitions="*, Auto">
+                    <TextBox x:Name="PatientSearchBox"
+                             Watermark="Wyszukaj pacjenta..."
+                             Height="38"
+                             VerticalContentAlignment="Center"
+                             TextChanged="PatientSearchBox_TextChanged">
+                        <TextBox.InnerLeftContent>
+                            <fa:SymbolIcon Symbol="Find" Margin="10,0,0,0" Foreground="Gray"/>
+                        </TextBox.InnerLeftContent>
+                    </TextBox>
 
+                    <Popup x:Name="PatientPopup"
+                           PlacementTarget="{Binding ElementName=PatientSearchBox}"
+                           Placement="Bottom"
+                           IsLightDismissEnabled="True">
+                        <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="8" MaxHeight="200">
+                            <ListBox x:Name="PatientListBox"
+                                     Background="Transparent"
+                                     SelectionChanged="PatientListBox_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="local:Patient">
+                                        <TextBlock Text="{Binding FullName}" Foreground="White" Padding="10,8"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Popup>
                 </Grid>
             </Border>
+
+            <Button Grid.Column="2"
+                    x:Name="ClearPatientButton"
+                    Classes="ModernCard"
+                    Padding="10,8"
+                    VerticalAlignment="Center"
+                    IsVisible="False"
+                    Click="ClearPatientButton_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <fa:SymbolIcon Symbol="Dismiss" FontSize="14" Foreground="#ef4444"/>
+                    <TextBlock Text="Wyczyść" Foreground="#ef4444" FontSize="13"/>
+                </StackPanel>
+            </Button>
+
+        </Grid>
+
+        <!-- Wybór ćwiczenia -->
+        <Grid x:Name="ExerciseSelectionPanel" ColumnDefinitions="190, *, Auto">
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <fa:SymbolIcon Symbol="Play" Foreground="#3b82f6" FontSize="24"/>
+                <StackPanel Spacing="2">
+                    <TextBlock Text="Aktywne ćwiczenie" FontSize="12" Foreground="Gray"/>
+                    <TextBlock x:Name="ActiveExerciseLabel" Text="Nie wybrano ćwiczenia" FontSize="15" FontWeight="SemiBold" Foreground="White"/>
+                </StackPanel>
+            </StackPanel>
+
+            <ComboBox x:Name="ExerciseComboBox"
+                      Grid.Column="1"
+                      Margin="30,0"
+                      Height="38"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"
+                      PlaceholderText="Wybierz ćwiczenie..."
+                      SelectionChanged="ExerciseComboBox_SelectionChanged">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="local:Exercise">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="{Binding Name}" Foreground="White"/>
+                            <TextBlock Text="{Binding Description}" Foreground="Gray" FontSize="12"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Button Grid.Column="2"
+                    x:Name="ClearExerciseButton"
+                    Classes="ModernCard"
+                    Padding="10,8"
+                    VerticalAlignment="Center"
+                    IsVisible="False"
+                    Click="ClearExerciseButton_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <fa:SymbolIcon Symbol="Dismiss" FontSize="14" Foreground="#ef4444"/>
+                    <TextBlock Text="Wyczyść" Foreground="#ef4444" FontSize="13"/>
+                </StackPanel>
+            </Button>
+
+        </Grid>
+
+    </StackPanel>
+
+</Border>
 
             <!-- Kafelki -->
             <UniformGrid Columns="3" Rows="2" HorizontalAlignment="Stretch">
@@ -137,8 +191,8 @@
                 <Button Name="TilePatients" Classes="DashboardCard" Margin="10" Height="170">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
                         <fa:SymbolIcon Symbol="People" FontSize="40" Foreground="#10b981"/>
-                        <TextBlock Text="Lista Pacjentów" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
-                        <TextBlock Text="Zarządzaj kartoteką i historią" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                        <TextBlock x:Name="TilePatientsText" Text="Lista Pacjentów" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
+                        <TextBlock x:Name="TilePatientsSubText" Text="Zarządzaj kartoteką i historią" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
@@ -170,7 +224,7 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
                         <fa:SymbolIcon Symbol="Contact" FontSize="40" Foreground="#06b6d4"/>
                         <TextBlock Text="Mój Profil" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="White"/>
-                        <TextBlock Text="Ustawienia konta fizjoterapeuty" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                        <TextBlock x:Name="TileProfileText" Text="Ustawienia konta fizjoterapeuty" FontSize="13" Foreground="DarkGray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
                     </StackPanel>
                 </Button>
 

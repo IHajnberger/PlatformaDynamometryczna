@@ -306,12 +306,12 @@ public partial class ConfigureWifiView : UserControl
                 .SelectMany(ni => ni.UnicastAddresses)
                 .Where(ip => ip.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(ip.Address))
                 .Select(ip => ip.Address.ToString())
-                .FirstOrDefault("192.168.1.100");
+                .FirstOrDefault("10.173.240.82");
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[C#] Could not get local IP: {ex.Message}");
-            return "192.168.1.100";
+            return "10.173.240.82";
         }
     }
 }

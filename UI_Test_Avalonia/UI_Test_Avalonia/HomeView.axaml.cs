@@ -31,19 +31,25 @@ public partial class HomeView : UserControl
         TileProfile.Click += (s, e) => ProfileClicked?.Invoke(this, EventArgs.Empty);
         TileLogout.Click += (s, e) => LogoutClicked?.Invoke(this, EventArgs.Empty);
 
-        // Subskrybuj event dopiero po InitializeComponent
         PatientService.Instance.ActivePatientChanged += OnActivePatientChanged;
+        ExerciseService.Instance.ActiveExerciseChanged += OnActiveExerciseChanged;
 
-        // Pierwsze odświeżenie
+        ExerciseComboBox.ItemsSource = ExerciseService.Instance.Exercises;
+
         UpdateActivePatientLabel();
+        UpdateActiveExerciseLabel();
 
         ApplyRoleRestrictions();
     }
 
     private void OnActivePatientChanged(object? sender, EventArgs e)
     {
-        // Zawsze aktualizuj UI na wątku UI
         Dispatcher.UIThread.Post(UpdateActivePatientLabel);
+    }
+
+    private void OnActiveExerciseChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(UpdateActiveExerciseLabel);
     }
 
     private void ApplyRoleRestrictions()
@@ -51,10 +57,28 @@ public partial class HomeView : UserControl
         if (_role == "Patient")
         {
             TileTest.IsVisible = false;
+            TilePatients.IsVisible = true;
             TileWifi.IsVisible = false;
+            TileWiki.IsVisible = true;
+            TileProfile.IsVisible = true;
             PatientSelectionPanel.IsVisible = false;
+            ExerciseSelectionPanel.IsVisible = false;
 
+            // Zmiana nazw kafelek dla pacjenta:
+            var profileText = this.FindControl<TextBlock>("TileProfileText");
+            var patientsText = this.FindControl<TextBlock>("TilePatientsText");
+            var headerText = this.FindControl<TextBlock>("TileHeaderText");
+            var patientsSubText = this.FindControl<TextBlock>("TilePatientsSubText");
+
+            if (profileText != null && patientsText != null && headerText != null && patientsSubText!=null)
+            {
+                profileText.Text = "Ustawienia konta pacjenta";
+                patientsText.Text = "Moje ćwiczenia";
+                headerText.Text = "Wybierz aktywność";
+                patientsSubText.Text = "Zarządzaj historią ćwiczeń";
+            }
         }
+
     }
 
     private void UpdateActivePatientLabel()
@@ -62,6 +86,14 @@ public partial class HomeView : UserControl
         var p = PatientService.Instance.ActivePatient;
         ActivePatientLabel.Text = p != null ? p.FullName : "Nie wybrano pacjenta";
         ClearPatientButton.IsVisible = p != null;
+    }
+
+    private void UpdateActiveExerciseLabel()
+    {
+        var ex = ExerciseService.Instance.ActiveExercise;
+        ActiveExerciseLabel.Text = ex != null ? ex.Name : "Nie wybrano ćwiczenia";
+        ClearExerciseButton.IsVisible = ex != null;
+        if (ex == null) ExerciseComboBox.SelectedItem = null;
     }
 
     private void PatientSearchBox_TextChanged(object? sender, TextChangedEventArgs e)
@@ -96,5 +128,18 @@ public partial class HomeView : UserControl
     private void ClearPatientButton_Click(object? sender, RoutedEventArgs e)
     {
         PatientService.Instance.SetActivePatient(null);
+    }
+
+    private void ExerciseComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ExerciseComboBox.SelectedItem is Exercise exercise)
+        {
+            ExerciseService.Instance.SetActiveExercise(exercise);
+        }
+    }
+
+    private void ClearExerciseButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ExerciseService.Instance.SetActiveExercise(null);
     }
 }

@@ -14,6 +14,8 @@ const bool USE_HARDWARE_SCALES = true;
 
 // --- Global Configurations ---
 Preferences preferences;
+Preferences calPrefs; // Added for saving calibration to flash memory
+
 String ssid = "";
 String password = "";
 String mqtt_server = ""; 
@@ -28,7 +30,7 @@ PubSubClient client(espClient);
 unsigned long lastReconnectAttempt = 0;
 
 // --- Batching Configuration ---
-const int BATCH_SIZE = 25; // Keeping your change to 100
+const int BATCH_SIZE = 25; 
 float batchLeft[BATCH_SIZE];
 float batchRight[BATCH_SIZE];
 int batchIndex = 0;
@@ -42,6 +44,10 @@ const int HX711_SCK_RIGHT  = 6;
 HX711 scaleLeft;
 HX711 scaleRight;
 
+// --- Calibration Variables (with your calculated defaults) ---
+float calFactorLeft = 23246.00f;
+float calFactorRight = -23607.00f;
+
 // --- Fake Data Variables ---
 unsigned long lastSimulatedRead = 0;
 
@@ -50,14 +56,20 @@ void sync_time();
 void reconnect();
 void serial_config_task(void *pvParameters);
 bool testWifiConnection(String testSsid, String testPass);
+void deep_tare(); 
 
 void setup() {
   Serial.begin(115200);
   delay(1000); 
 
-  // *** THE FIX IS HERE ***
-  // Increase buffer size to handle large JSON payloads from BATCH_SIZE = 100
+  // Increase buffer size to handle large JSON payloads
   client.setBufferSize(4096); 
+
+  // --- Load Calibration from Memory ---
+  calPrefs.begin("calibration", true); // true = Read Only
+  calFactorLeft = calPrefs.getFloat("cal_left", 23246.00f); 
+  calFactorRight = calPrefs.getFloat("cal_right", -23607.00f); 
+  calPrefs.end();
 
   xTaskCreatePinnedToCore(
       serial_config_task, 
@@ -74,13 +86,13 @@ void setup() {
     scaleLeft.begin(HX711_DOUT_LEFT, HX711_SCK_LEFT);
     scaleRight.begin(HX711_DOUT_RIGHT, HX711_SCK_RIGHT);
     
-    Serial.println("[ESP] Scales initialized. Taring... do not apply weight.");
-    scaleLeft.set_scale(16000.f);
-    scaleRight.set_scale(-23800.f);
+    // Apply the loaded calibration factors
+    scaleLeft.set_scale(calFactorLeft);
+    scaleRight.set_scale(calFactorRight);
     
-    scaleLeft.tare();
-    scaleRight.tare();
-    Serial.println("[ESP] Taring complete.");
+    Serial.printf("[ESP] Loaded Cal Factors - Left: %.2f | Right: %.2f\n", calFactorLeft, calFactorRight);
+    
+    deep_tare(); // Use the robust 50-sample taring function
   } else {
     Serial.println("[ESP] Simulation Mode: HX711 bypassed. Generating Sine Waves.");
   }
@@ -99,6 +111,19 @@ void setup() {
   }
 }
 
+// --- DEEP TARE FUNCTION ---
+void deep_tare() {
+  if (USE_HARDWARE_SCALES) {
+    Serial.println("[ESP] Taring scales in 2 seconds... DO NOT TOUCH PLATES.");
+    delay(2000); 
+    scaleLeft.tare(50);
+    scaleRight.tare(50);
+    Serial.println("[ESP] Taring complete.");
+  } else {
+    Serial.println("[ESP] Simulation Mode: Tare ignored.");
+  }
+}
+
 void serial_config_task(void *pvParameters) {
   String inputBuffer = "";
   while (1) {
@@ -106,6 +131,7 @@ void serial_config_task(void *pvParameters) {
       char c = Serial.read();
       if (c == '\n' || c == '\r') {
         if (inputBuffer.length() > 0) {
+          // --- EXISTING APP FUNCTIONALITY ---
           if (inputBuffer.startsWith("PING")) {
             Serial.println("START_APLIKACJA");
           } 
@@ -140,27 +166,54 @@ void serial_config_task(void *pvParameters) {
             }
           }
           else if (inputBuffer.startsWith("DISCONNECT_CMD")) {
-               preferences.begin("wifi_creds", false);
-               preferences.clear();
-               preferences.end();
-               Serial.println("DISCONNECTED_OK");
-               delay(500);
-               ESP.restart();
+              preferences.begin("wifi_creds", false);
+              preferences.clear();
+              preferences.end();
+              Serial.println("DISCONNECTED_OK");
+              delay(500);
+              ESP.restart();
           }
+          
+          // --- CALIBRATION & TARE COMMANDS ---
           else if (inputBuffer.startsWith("TARE")) {
-            if (USE_HARDWARE_SCALES) {
-                Serial.println("[ESP] Taring scales...");
-                scaleLeft.tare();
-                scaleRight.tare();
-                Serial.println("[ESP] Taring complete.");
-            } else {
-                Serial.println("[ESP] Simulation Mode: Tare ignored.");
-            }
+              deep_tare();
+          }
+          else if (inputBuffer.startsWith("GET_CAL")) {
+              Serial.printf("[ESP] Current Scale Factors -> Left: %.2f | Right: %.2f\n", calFactorLeft, calFactorRight);
+          }
+          else if (inputBuffer.startsWith("CAL_LEFT:")) {
+              float knownWeight = inputBuffer.substring(9).toFloat();
+              if (knownWeight > 0) {
+                  Serial.printf("[ESP] Calibrating Left Scale for %.2f units...\n", knownWeight);
+                  float rawReading = scaleLeft.get_value(20); 
+                  calFactorLeft = rawReading / knownWeight;
+                  scaleLeft.set_scale(calFactorLeft);
+                  calPrefs.begin("calibration", false); 
+                  calPrefs.putFloat("cal_left", calFactorLeft);
+                  calPrefs.end();
+                  Serial.printf("[ESP] Left Calibrated! New Factor: %.2f\n", calFactorLeft);
+              }
+          }
+          else if (inputBuffer.startsWith("CAL_RIGHT:")) {
+              float knownWeight = inputBuffer.substring(10).toFloat();
+              if (knownWeight > 0) {
+                  Serial.printf("[ESP] Calibrating Right Scale for %.2f units...\n", knownWeight);
+                  float rawReading = scaleRight.get_value(20); 
+                  calFactorRight = rawReading / knownWeight;
+                  scaleRight.set_scale(calFactorRight);
+                  calPrefs.begin("calibration", false);
+                  calPrefs.putFloat("cal_right", calFactorRight);
+                  calPrefs.end();
+                  Serial.printf("[ESP] Right Calibrated! New Factor: %.2f\n", calFactorRight);
+              }
           }
           inputBuffer = "";
         }
       } else {
-        inputBuffer += c; 
+        // --- FIX FOR ANSI ESCAPE CODES (Arrow keys / Backspace) ---
+        if (c >= 32 && c <= 126) {
+          inputBuffer += c; 
+        }
         if (inputBuffer.length() > 256) {
           inputBuffer = ""; 
         }
@@ -221,8 +274,15 @@ void loop() {
 
           if (USE_HARDWARE_SCALES) {
               if (scaleLeft.is_ready() && scaleRight.is_ready()) {
-                batchLeft[batchIndex] = scaleLeft.get_units(1);
-                batchRight[batchIndex] = scaleRight.get_units(1);
+                float rawLeft = scaleLeft.get_units(1);
+                float rawRight = scaleRight.get_units(1);
+
+                // --- ZERO CLAMP (Deadband) ---
+                if (abs(rawLeft) < 0.3f) rawLeft = 0.0f;
+                if (abs(rawRight) < 0.3f) rawRight = 0.0f;
+
+                batchLeft[batchIndex] = rawLeft;
+                batchRight[batchIndex] = rawRight;
                 gotNewData = true;
               }
           } else {
@@ -254,7 +314,8 @@ void loop() {
                 rightArray.add(batchRight[i]);
               }
 
-              char jsonBuffer[2048]; // Match the buffer size
+              // MATCHED BUFFER SIZES
+              char jsonBuffer[4096]; 
               serializeJson(doc, jsonBuffer);
               client.publish(publish_topic, jsonBuffer);
               

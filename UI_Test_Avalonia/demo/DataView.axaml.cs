@@ -31,7 +31,7 @@ public partial class DataView : UserControl, IDisposable
     private readonly List<(double Weight, DateTime Timestamp)> _rightBuffer = new();
     private const int BufferSize = 200;
     private int _updateCounter = 0;
-
+    private BiomechanicsResult _lastResult = new();
     public ObservableCollection<ISeries> LeftChartSeries { get; set; }
     public ObservableCollection<ISeries> RightChartSeries { get; set; }
 
@@ -97,8 +97,19 @@ public partial class DataView : UserControl, IDisposable
             SessionService.Instance.AddSession(new Session
             {
                 PatientId = activePatient.Id,
-                ExerciseName = "Skok pionowy",
-                Date = DateTime.Now
+                ExerciseName = "Przysiad (SQ)",
+                Date = DateTime.Now,
+                PeakForceLeft = _lastResult.PeakForceLeft,
+                PeakForceRight = _lastResult.PeakForceRight,
+                PeakForceTotal = _lastResult.PeakForceTotal,
+                MeanForceLeft = _lastResult.MeanForceLeft,
+                MeanForceRight = _lastResult.MeanForceRight,
+                AsymmetryIndex = _lastResult.AsymmetryIndex,
+                LoadRatioLeft = _lastResult.LoadRatioLeft,
+                LoadRatioRight = _lastResult.LoadRatioRight,
+                MinForceLeft = _lastResult.MinForceLeft,
+                MinForceRight = _lastResult.MinForceRight,
+                RFD = _lastResult.BrakingRFD
             });
 
             StatusText.Text = $"Status: Sesja zapisana dla {activePatient.FullName}!";
@@ -354,7 +365,11 @@ public partial class DataView : UserControl, IDisposable
             MeanForceRText.Text = $"{r.MeanForceRight:F1} kg";
             LoadRatioText.Text = $"L:{r.LoadRatioLeft:F1}% R:{r.LoadRatioRight:F1}%";
             AsymmetryText.Text = $"{r.AsymmetryIndex:F1}%";
-            FlightTimeText.Text = r.FlightTime > 0 ? $"{r.FlightTime:F3} s" : "--";
+
+            // Dół przysiadu = minimalna siła lewej nogi (moment najgłębszego ugięcia)
+            FlightTimeText.Text = $"{r.MinForceLeft:F1} kg";
+
+            // RFD przy wstawaniu
             BrakingRFDText.Text = $"{r.BrakingRFD:F1} kg/s";
 
             SummaryPeakText.Text = $"{r.PeakForceTotal:F1} kg";
@@ -364,6 +379,13 @@ public partial class DataView : UserControl, IDisposable
 
             BalanceLeftText.Text = $"L: {r.LoadRatioLeft:F1}%";
             BalanceRightText.Text = $"R: {r.LoadRatioRight:F1}%";
+
+            // Kolorowanie asymetrii – zielony gdy OK, czerwony gdy >10%
+            AsymmetryText.Foreground = Math.Abs(r.AsymmetryIndex) > 10
+                ? Brushes.Red
+                : SolidColorBrush.Parse("#10b981");
+            SummaryAsymmetryText.Foreground = AsymmetryText.Foreground;
+            _lastResult = r;
         }, DispatcherPriority.Render);
     }
 }

@@ -126,7 +126,7 @@ public partial class DataView : UserControl, IDisposable
             TextSize = 11, // Włączony tekst
             LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
             Labeler = value => (value * 0.012).ToString("F1") , 
-            SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
+            SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
             MinLimit = 0,
             MaxLimit = ViewWindowSize,
             MinStep = 1000.0 / 12.0
@@ -137,7 +137,7 @@ public partial class DataView : UserControl, IDisposable
             TextSize = 11,
             LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
             Labeler = value => (value * 0.012).ToString("F1"),
-            SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
+            SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
             MinLimit = 0,
             MaxLimit = ViewWindowSize,
             MinStep = 1000.0 / 12.0
@@ -156,7 +156,7 @@ public partial class DataView : UserControl, IDisposable
                 LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
                 TextSize = 11,
                 Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
-                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333")) { StrokeThickness = 1 }
+                SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1 }
             }
         };
 
@@ -214,7 +214,7 @@ public partial class DataView : UserControl, IDisposable
             Children =
             {
                 new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
-                new Avalonia.Controls.TextBlock { Text = "Start", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+                new Avalonia.Controls.TextBlock { Text = "Start", FontWeight =Avalonia.Media.FontWeight.Bold}
             }
         };
 
@@ -230,7 +230,7 @@ public partial class DataView : UserControl, IDisposable
                     Children =
                     {
                         new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
-                        new Avalonia.Controls.TextBlock { Text = "Start", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+                        new Avalonia.Controls.TextBlock { Text = "Start", FontWeight =Avalonia.Media.FontWeight.Bold}
                     }
                 };
             }
@@ -259,7 +259,7 @@ public partial class DataView : UserControl, IDisposable
                     Children =
                     {
                         new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Stop, FontSize = 16, Foreground = Brushes.Orange },
-                        new Avalonia.Controls.TextBlock { Text = "Stop", Foreground = Brushes.White, FontWeight = Avalonia.Media.FontWeight.Bold }
+                        new Avalonia.Controls.TextBlock { Text = "Stop" , FontWeight =Avalonia.Media.FontWeight.Bold}
                     }
                 };
             }

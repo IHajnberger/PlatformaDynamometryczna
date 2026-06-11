@@ -8,24 +8,21 @@
 
     <Grid Margin="30" RowDefinitions="Auto, *">
 
-        <!-- Nagłówek -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,25">
             <Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </Button>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
-                <TextBlock Text="O programie" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Informacje o systemie platformy dynamometrycznej" FontSize="13" Foreground="Gray"/>
+                <TextBlock Text="O programie" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Informacje o systemie platformy dynamometrycznej" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Center" Margin="0,10,0,40">
 
-                <!-- Hero karta z logo i nazwą -->
-                <Border Background="#1e1e1e" BorderBrush="#2d2d2d" BorderThickness="1" CornerRadius="20" Padding="40">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="20" Padding="40">
                     <StackPanel Spacing="16" HorizontalAlignment="Center">
-                        <!-- Logo placeholder -->
                         <Border Width="96" Height="96" CornerRadius="24"
                                 Background="#1d3a6e" HorizontalAlignment="Center">
                             <TextBlock Text="P" FontSize="48" FontWeight="Bold"
@@ -35,12 +32,11 @@
                         </Border>
                         <StackPanel Spacing="6" HorizontalAlignment="Center">
                             <TextBlock Text="PLACEHOLDER" FontSize="28" FontWeight="Bold"
-                                       Foreground="White" HorizontalAlignment="Center"/>
+                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                             <TextBlock Text="System analizy asymetrii i biomechaniki ruchu"
-                                       FontSize="14" Foreground="Gray" HorizontalAlignment="Center"/>
+                                       FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                         </StackPanel>
-                        <!-- Wersja -->
-                        <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1"
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
                                 CornerRadius="20" Padding="14,6" HorizontalAlignment="Center">
                             <TextBlock Text="Wersja 0.1.0 – MVP / Tryb demonstracyjny"
                                        FontSize="12" Foreground="#3b82f6" FontWeight="SemiBold"/>
@@ -48,102 +44,98 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Opis produktu -->
-                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="28">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="28">
                     <StackPanel Spacing="14">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:SymbolIcon Symbol="Important" FontSize="18" Foreground="#3b82f6"/>
-                            <TextBlock Text="O systemie" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Text="O systemie" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#cccccc" LineHeight="24"
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" LineHeight="24"
                                    Text="PLACEHOLDER to zaawansowany system pomiarowy oparty na platformie dynamometrycznej, przeznaczony do analizy biomechaniki ruchu oraz asymetrii sił kończyn dolnych. System umożliwia fizjoterapeutom i trenerom prowadzenie precyzyjnych pomiarów w czasie rzeczywistym, monitorowanie postępów pacjentów oraz archiwizację wyników sesji pomiarowych."/>
-                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#cccccc" LineHeight="24"
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" LineHeight="24"
                                    Text="Platforma komunikuje się bezprzewodowo z czujnikami poprzez protokół MQTT, zapewniając niskie opóźnienia i wysoką częstotliwość próbkowania. Dane wizualizowane są w czasie rzeczywistym na interaktywnych wykresach, a wyniki automatycznie przypisywane do profilu pacjenta."/>
                     </StackPanel>
                 </Border>
 
-                <!-- Funkcje -->
-                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="28">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="28">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:SymbolIcon Symbol="Checkmark" FontSize="18" Foreground="#10b981"/>
-                            <TextBlock Text="Główne funkcje" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Text="Główne funkcje" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <UniformGrid Columns="2" Rows="3">
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,20,12">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#3b82f6" VerticalAlignment="Center"/>
-                                <TextBlock Text="Pomiar sił w czasie rzeczywistym" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Pomiar sił w czasie rzeczywistym" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#3b82f6" VerticalAlignment="Center"/>
-                                <TextBlock Text="Analiza asymetrii kończyn" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Analiza asymetrii kończyn" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,20,12">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#10b981" VerticalAlignment="Center"/>
-                                <TextBlock Text="Kartoteka pacjentów z historią" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Kartoteka pacjentów z historią" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#10b981" VerticalAlignment="Center"/>
-                                <TextBlock Text="Zapis i archiwizacja sesji" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Zapis i archiwizacja sesji" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,20,0">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#8b5cf6" VerticalAlignment="Center"/>
-                                <TextBlock Text="Połączenie WiFi z platformą" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Połączenie WiFi z platformą" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,0">
                                 <Border Width="8" Height="8" CornerRadius="4" Background="#8b5cf6" VerticalAlignment="Center"/>
-                                <TextBlock Text="Profile fizjoterapeuty i pacjenta" Foreground="#cccccc" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBlock Text="Profile fizjoterapeuty i pacjenta" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center"/>
                             </StackPanel>
                         </UniformGrid>
                     </StackPanel>
                 </Border>
 
-                <!-- Technologie -->
-                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="16" Padding="28">
+                <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="16" Padding="28">
                     <StackPanel Spacing="16">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <fa:SymbolIcon Symbol="Code" FontSize="18" Foreground="#f59e0b"/>
-                            <TextBlock Text="Technologie" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Text="Technologie" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Grid ColumnDefinitions="*, *, *, *">
-                            <Border Grid.Column="0" Background="#1a1a1a" BorderBrush="#3d3d3d" BorderThickness="1"
+                            <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
                                     CornerRadius="10" Padding="14,10" Margin="0,0,8,0">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="UI" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Avalonia UI" FontSize="13" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="UI" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Avalonia UI" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="1" Background="#1a1a1a" BorderBrush="#3d3d3d" BorderThickness="1"
+                            <Border Grid.Column="1" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
                                     CornerRadius="10" Padding="14,10" Margin="0,0,8,0">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Język" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="C# / .NET" FontSize="13" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Język" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="C# / .NET" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="2" Background="#1a1a1a" BorderBrush="#3d3d3d" BorderThickness="1"
+                            <Border Grid.Column="2" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
                                     CornerRadius="10" Padding="14,10" Margin="0,0,8,0">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Komunikacja" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="MQTT" FontSize="13" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Komunikacja" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="MQTT" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="3" Background="#1a1a1a" BorderBrush="#3d3d3d" BorderThickness="1"
+                            <Border Grid.Column="3" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
                                     CornerRadius="10" Padding="14,10">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
-                                    <TextBlock Text="Wykresy" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="LiveCharts2" FontSize="13" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Wykresy" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="LiveCharts2" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Stopka -->
                 <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="0,10,0,0">
                     <TextBlock Text="© 2026 PLACEHOLDER. Wszelkie prawa zastrzeżone."
-                               FontSize="12" Foreground="#444" HorizontalAlignment="Center"/>
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                     <TextBlock Text="Wersja demonstracyjna – dane i funkcje mogą ulec zmianie."
-                               FontSize="11" Foreground="#333" HorizontalAlignment="Center"/>
+                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Opacity="0.8"/>
                 </StackPanel>
 
             </StackPanel>

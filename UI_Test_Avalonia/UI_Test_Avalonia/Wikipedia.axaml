@@ -8,8 +8,8 @@
 
     <UserControl.Styles>
         <Style Selector="Button.DashboardCard">
-            <Setter Property="Background" Value="#2d2d2d"/>
-            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="20"/>
@@ -24,14 +24,14 @@
             </Setter>
         </Style>
         <Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#373737"/>
-            <Setter Property="BorderBrush" Value="#4f4f4f"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
         </Style>
         <Style Selector="Button.DashboardCard:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.02)"/>
         </Style>
         <Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Background" Value="{DynamicResource SurfacePressedBrush}"/>
             <Setter Property="BorderBrush" Value="#3b82f6"/>
         </Style>
         <Style Selector="Button.DashboardCard:pressed">
@@ -43,11 +43,11 @@
 
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,25">
             <Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </Button>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
-                <TextBlock Text="Baza wiedzy" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Protokoły testów i opisy ćwiczeń" FontSize="13" Foreground="Gray"/>
+                <TextBlock Text="Baza wiedzy" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Protokoły testów i opisy ćwiczeń" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
         </Grid>
 
@@ -56,10 +56,9 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <fa:SymbolIcon Symbol="Library" FontSize="18" Foreground="#8b5cf6"/>
-                    <TextBlock Text="Testy dynamometryczne" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text="Testy dynamometryczne" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Statyczny rozkład ciężaru -->
                 <Button Name="TileSRC" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -69,12 +68,12 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Statyczny rozkład ciężaru" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Statyczny rozkład ciężaru" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#1d3a6e" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Static Weight Distribution" FontSize="11" Foreground="#3b82f6"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Podstawowy test oceny symetrii obciążenia kończyn dolnych w pozycji stojącej. Umożliwia wykrywanie kompensacji, odciążania kończyny oraz zaburzeń postawy na podstawie rozkładu sił nacisku na platformy" FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Podstawowy test oceny symetrii obciążenia kończyn dolnych w pozycji stojącej. Umożliwia wykrywanie kompensacji, odciążania kończyny oraz zaburzeń postawy na podstawie rozkładu sił nacisku na platformy" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
@@ -82,11 +81,10 @@
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                <!-- Próba jednonożna -->
                 <Button Name="TilePJ" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -96,25 +94,23 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Próba jednonożna" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Próba jednonożna" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#2d1b4e" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Single Leg Stance " FontSize="11" Foreground="#8b5cf6"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Test równowagi i kontroli posturalnej wykonywany na jednej kończynie dolnej. Pozwala ocenić stabilność, zdolność utrzymania środka ciężkości oraz jakość kontroli nerwowo-mięśniowej badanego." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Test równowagi i kontroli posturalnej wykonywany na jednej kończynie dolnej. Pozwala ocenić stabilność, zdolność utrzymania środka ciężkości oraz jakość kontroli nerwowo-mięśniowej badanego." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~20–30 sekund" FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                             
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                <!-- Test wstawania i siadania -->
                 <Button Name="TileTWiS" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -124,25 +120,23 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Test wstawania i siadania" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Test wstawania i siadania" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#0c6e36" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Sit To Stand" FontSize="11" Foreground="#1ca657"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Funkcjonalny test oceniający zdolność generowania siły przez kończyny dolne podczas codziennego ruchu wstawania z pozycji siedzącej i powrotu do siadu. Pozwala analizować symetrię obciążenia, dynamikę ruchu oraz wydolność mięśniową pacjenta." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Funkcjonalny test oceniający zdolność generowania siły przez kończyny dolne podczas codziennego ruchu wstawania z pozycji siedzącej i powrotu do siadu. Pozwala analizować symetrię obciążenia, dynamikę ruchu oraz wydolność mięśniową pacjenta." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~30 sekund " FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                                
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                <!-- Przysiad -->
                 <Button Name="TilePO" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -152,25 +146,23 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Przysiad" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Przysiad" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#701e4b" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Squat Assessment" FontSize="11" Foreground="#b54a85"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Funkcjonalny test oceny biomechaniki kończyn dolnych podczas wykonywania przysiadu. Pozwala analizować symetrię obciążenia, sposób generowania siły oraz strategie kompensacyjne pojawiające się w trakcie ruchu." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Funkcjonalny test oceny biomechaniki kończyn dolnych podczas wykonywania przysiadu. Pozwala analizować symetrię obciążenia, sposób generowania siły oraz strategie kompensacyjne pojawiające się w trakcie ruchu." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~30-60 sekund " FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                                
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                <!-- Próba Romberga -->
                 <Button Name="TilePR" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -180,25 +172,23 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Próba Romberga" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Próba Romberga" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#611d19" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Balance Test (Romberg)" FontSize="11" Foreground="#a34540"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Klasyczny test równowagi służący do oceny kontroli posturalnej, stabilności oraz zdolności utrzymania środka ciężkości w obrębie pola podparcia. Pozwala wykrywać zaburzenia równowagi, asymetrie obciążenia i deficyty kontroli nerwowo-mięśniowej." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Klasyczny test równowagi służący do oceny kontroli posturalnej, stabilności oraz zdolności utrzymania środka ciężkości w obrębie pola podparcia. Pozwala wykrywać zaburzenia równowagi, asymetrie obciążenia i deficyty kontroli nerwowo-mięśniowej." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~2–3 minut " FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                                
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                <!-- Izometryczny półprzysiad -->
                 <Button Name="TileTWiI" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
@@ -208,26 +198,24 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Izometryczny półprzysiad" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Izometryczny półprzysiad" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#a66802" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Isometric HalfSquat" FontSize="11" Foreground="#de9d2f"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Test siły izometrycznej wykonywany w ustalonej pozycji półprzysiadu. Umożliwia ocenę zdolności generowania siły, symetrii obciążenia oraz odporności na zmęczenie bez wykonywania ruchu w stawach." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Test siły izometrycznej wykonywany w ustalonej pozycji półprzysiadu. Umożliwia ocenę zdolności generowania siły, symetrii obciążenia oraz odporności na zmęczenie bez wykonywania ruchu w stawach." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~20-60 sekund" FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                                
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
-                 <!-- Weight Shift Test -->
-                <Button Name="TileTPC" Classes="DashboardCard">
+                 <Button Name="TileTPC" Classes="DashboardCard">
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <Border Grid.Column="0" Width="52" Height="52" CornerRadius="14"
                                 Background="#0c4778" Margin="0,0,18,0" VerticalAlignment="Center">
@@ -236,21 +224,20 @@
                         </Border>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="5">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="Test przenoszenia ciężaru" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <TextBlock Text="Test przenoszenia ciężaru" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <Border Background="#0c4778" CornerRadius="6" Padding="8,3">
                                     <TextBlock Text="Weight Shift Test" FontSize="11" Foreground="#3c85c2"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Dynamiczny test oceniający zdolność kontrolowanego przenoszenia ciężaru ciała pomiędzy kończynami dolnymi. Pozwala wykryć asymetrie obciążenia, kompensacje ruchowe oraz zaburzenia kontroli motorycznej." FontSize="13" Foreground="Gray" TextWrapping="Wrap"/>
+                            <TextBlock Text="Dynamiczny test oceniający zdolność kontrolowanego przenoszenia ciężaru ciała pomiędzy kończynami dolnymi. Pozwala wykryć asymetrie obciążenia, kompensacje ruchowe oraz zaburzenia kontroli motorycznej." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
                                 <StackPanel Orientation="Horizontal" Spacing="5">
                                     <fa:SymbolIcon Symbol="Clock" FontSize="12" Foreground="#10b981"/>
                                     <TextBlock Text="Czas wykonania ćwiczenia: ~10-15 minut" FontSize="12" Foreground="#10b981"/>
                                 </StackPanel>
-                                
                             </StackPanel>
                         </StackPanel>
-                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="Gray" VerticalAlignment="Center"/>
+                        <fa:SymbolIcon Grid.Column="2" Symbol="ChevronRight" FontSize="18" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 

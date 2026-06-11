@@ -4,12 +4,52 @@
              x:Class="UI_Test_Avalonia.App"
              RequestedThemeVariant="Dark">
 
+    <Application.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">#121212</SolidColorBrush>
+                    
+                    <SolidColorBrush x:Key="SurfaceBrush">#1E1E1E</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush">#2D2D2D</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfaceHoverBrush">#2A2A2A</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfacePressedBrush">#171717</SolidColorBrush>
+                    
+                    <SolidColorBrush x:Key="ModernCardBrush">#1E1E1E</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardBorderBrush">#2D2D2D</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardHoverBrush">#2A2A2A</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardPressedBrush">#171717</SolidColorBrush>
+
+                    <SolidColorBrush x:Key="TextPrimaryBrush">#EDEDED</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondaryBrush">#A0A0A0</SolidColorBrush>
+                </ResourceDictionary>
+                
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AppBackgroundBrush">#EFEFED</SolidColorBrush>
+                    
+                    <SolidColorBrush x:Key="SurfaceBrush">#F8F8F6</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush">#E0E0DE</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfaceHoverBrush">#F0F0EE</SolidColorBrush>
+                    <SolidColorBrush x:Key="SurfacePressedBrush">#E8E8E6</SolidColorBrush>
+                    
+                    <SolidColorBrush x:Key="ModernCardBrush">#F8F8F6</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardBorderBrush">#E0E0DE</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardHoverBrush">#F0F0EE</SolidColorBrush>
+                    <SolidColorBrush x:Key="ModernCardPressedBrush">#E8E8E6</SolidColorBrush>
+
+                    <SolidColorBrush x:Key="TextPrimaryBrush">#2C3E50</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextSecondaryBrush">#697A8D</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
 
         <Style Selector="Button.ModernCard /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#3a3a3a"/>
-            <Setter Property="BorderBrush" Value="#4a4a4a"/>
+            <Setter Property="Background" Value="{DynamicResource ModernCardBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ModernCardBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         
@@ -28,15 +68,15 @@
         </Style>
 
         <Style Selector="Button.ModernCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#252525"/>
-            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+            <Setter Property="Background" Value="{DynamicResource ModernCardHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
         </Style>
         <Style Selector="Button.ModernCard:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.01)"/>
         </Style>
 
         <Style Selector="Button.ModernCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#1a1a1a"/>
+            <Setter Property="Background" Value="{DynamicResource ModernCardPressedBrush}"/>
             <Setter Property="BorderBrush" Value="#3b82f6"/>
         </Style>
         <Style Selector="Button.ModernCard:pressed">
@@ -54,7 +94,9 @@
         </Style>
 
         <Style Selector="Button.ModernCard.Accent:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#0f172a"/> <Setter Property="BorderBrush" Value="#3b82f6"/> </Style>
+            <Setter Property="Background" Value="#0f172a"/> 
+            <Setter Property="BorderBrush" Value="#3b82f6"/> 
+        </Style>
         
     </Application.Styles>
 </Application>

@@ -10,17 +10,17 @@
         
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,25">
             <Button Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </Button>
             <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock Text="Konfiguracja Urządzenia" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Połącz i skonfiguruj platformy ESP32" FontSize="14" Foreground="Gray"/>
+                <TextBlock Text="Konfiguracja Urządzenia" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Połącz i skonfiguruj platformy ESP32" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Border Background="#2d2d2d" 
-                    BorderBrush="#3d3d3d" 
+            <Border Background="{DynamicResource SurfaceBrush}" 
+                    BorderBrush="{DynamicResource SurfaceBorderBrush}" 
                     BorderThickness="1" 
                     CornerRadius="16" 
                     Padding="30" 
@@ -32,7 +32,7 @@
                 <StackPanel Spacing="20">
                     
                     <StackPanel Spacing="10">
-                        <TextBlock Text="Krok 1: Wyszukiwanie urządzeń" FontWeight="SemiBold" FontSize="15" Foreground="White"/>
+                        <TextBlock Text="Krok 1: Wyszukiwanie urządzeń" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         
                         <Button Content="Skanuj porty ESP" 
                                 Classes="ModernCard" 
@@ -43,13 +43,13 @@
                                 CornerRadius="8"
                                 Click="ScanButton_Click" />
                         
-                        <Border Background="#222222" CornerRadius="8" Padding="12,10" Margin="0,5,0,0">
+                        <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12,10" Margin="0,5,0,0">
                             <Grid ColumnDefinitions="Auto, *">
-                                <fa:SymbolIcon Grid.Column="0" Symbol="Important" FontSize="16" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,10,0"/>
+                                <fa:SymbolIcon Grid.Column="0" Symbol="Important" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,10,0"/>
                                 <TextBlock Grid.Column="1"
                                            x:Name="StatusTextBlock" 
                                            Text="Status: Oczekiwanie na skanowanie..." 
-                                           Foreground="Gray" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" 
                                            FontSize="13" 
                                            VerticalAlignment="Center" 
                                            TextWrapping="Wrap"/>
@@ -57,34 +57,34 @@
                         </Border>
                     </StackPanel>
 
-                    <Separator Background="#3d3d3d" Margin="0,5"/>
+                    <Separator Background="{DynamicResource SurfaceBorderBrush}" Margin="0,5"/>
 
                     <StackPanel x:Name="InputPanel" Spacing="15" IsEnabled="False">
-                        <TextBlock Text="Krok 2: Ustawienia sieciowe" FontWeight="SemiBold" FontSize="15" Foreground="White"/>
+                        <TextBlock Text="Krok 2: Ustawienia sieciowe" FontWeight="SemiBold" FontSize="15" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         
                         <StackPanel Spacing="6">
-                            <TextBlock Text="SSID (Nazwa sieci WiFi):" FontSize="13" Foreground="LightGray" />
+                            <TextBlock Text="SSID (Nazwa sieci WiFi):" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" />
                             <TextBox x:Name="SsidTextBox" Watermark="Wprowadź nazwę sieci..." Height="38">
                                 <TextBox.InnerLeftContent>
-                                    <fa:SymbolIcon Symbol="Wifi4" Margin="10,0,0,0" Foreground="Gray"/>
+                                    <fa:SymbolIcon Symbol="Wifi4" Margin="10,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </TextBox.InnerLeftContent>
                             </TextBox>
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Hasło WiFi:" FontSize="13" Foreground="LightGray" />
+                            <TextBlock Text="Hasło WiFi:" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" />
                             <TextBox x:Name="PasswordTextBox" PasswordChar="*" Watermark="Wprowadź hasło..." Height="38">
                                 <TextBox.InnerLeftContent>
-                                    <fa:SymbolIcon Symbol="Permissions" Margin="10,0,0,0" Foreground="Gray"/>
+                                    <fa:SymbolIcon Symbol="Permissions" Margin="10,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </TextBox.InnerLeftContent>
                             </TextBox>
                         </StackPanel>
                         
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Adres IP Brokera MQTT (Ten komputer):" FontSize="13" Foreground="LightGray"/>
+                            <TextBlock Text="Adres IP Brokera MQTT (Ten komputer):" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <TextBox x:Name="MqttIpTextBox" Watermark="np. 192.168.1.50" Height="38">
                                 <TextBox.InnerLeftContent>
-                                    <fa:SymbolIcon Symbol="Target" Margin="10,0,0,0" Foreground="Gray"/>
+                                    <fa:SymbolIcon Symbol="Target" Margin="10,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </TextBox.InnerLeftContent>
                             </TextBox>
                         </StackPanel>
@@ -114,7 +114,7 @@
                         
                             <Button.Styles>
                                 <Style Selector="Button.ModernCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
-                                    <Setter Property="Background" Value="#1a1a1a"/> 
+                                    <Setter Property="Background" Value="{DynamicResource ModernCardPressedBrush}"/> 
                                     <Setter Property="BorderBrush" Value="#E53935"/> 
                                 </Style>
                             </Button.Styles>

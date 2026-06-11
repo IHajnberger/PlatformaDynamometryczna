@@ -8,14 +8,13 @@
 
     <Grid Margin="30" RowDefinitions="Auto, *">
 
-        <!-- Nag³ówek -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,25">
             <Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="{DynamicResource TextPrimaryBrush}"/>
             </Button>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
-                <TextBlock x:Name="TitleLabel" Text="Æwiczenie" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                <TextBlock x:Name="SubtitleLabel" Text="Baza wiedzy" FontSize="13" Foreground="Gray"/>
+                <TextBlock x:Name="TitleLabel" Text="Ä†wiczenie" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock x:Name="SubtitleLabel" Text="Baza wiedzy" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
         </Grid>
 

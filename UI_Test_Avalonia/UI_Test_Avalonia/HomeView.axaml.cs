@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia;
 
 namespace UI_Test_Avalonia;
 
@@ -137,9 +139,32 @@ public partial class HomeView : UserControl
             ExerciseService.Instance.SetActiveExercise(exercise);
         }
     }
+    private void ThemeToggleButton_Click(object? sender, RoutedEventArgs e)
+    {
+        var app = Application.Current;
+        if (app is null) return;
 
+        // Sprawdzamy obecny motyw i go odwracamy
+        if (app.RequestedThemeVariant == Avalonia.Styling.ThemeVariant.Dark)
+        {
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
+            ThemeIcon.Symbol = FluentAvalonia.UI.Controls.Symbol.WeatherMoon;
+            ThemeText.Text = "Ciemny motyw";
+            ThemeIcon.Foreground = Brushes.SlateGray;
+            ThemeText.Foreground = Brushes.SlateGray;
+        }
+        else
+        {
+            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
+            ThemeIcon.Symbol = FluentAvalonia.UI.Controls.Symbol.WeatherSunny;
+            ThemeText.Text = "Jasny motyw";
+            ThemeIcon.Foreground = new SolidColorBrush(Color.Parse("#eab308"));
+            ThemeText.Foreground = new SolidColorBrush(Color.Parse("#eab308"));
+        }
+    }
     private void ClearExerciseButton_Click(object? sender, RoutedEventArgs e)
     {
         ExerciseService.Instance.SetActiveExercise(null);
     }
+    
 }

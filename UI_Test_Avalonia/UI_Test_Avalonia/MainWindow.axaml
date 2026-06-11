@@ -6,12 +6,15 @@
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
         x:Class="UI_Test_Avalonia.MainWindow"
         Title="PLACEHOLDER" 
+        
         Width="1500" Height="1000"
-        Background="#121212"> <DockPanel>
+        Background="{DynamicResource AppBackgroundBrush}"> 
+    
+    <DockPanel>
         <Border DockPanel.Dock="Top" 
-                Background="#1e1e1e" 
+                Background="{DynamicResource SurfaceBrush}" 
                 Padding="15,10" 
-                BorderBrush="#2d2d2d" 
+                BorderBrush="{DynamicResource SurfaceBorderBrush}" 
                 BorderThickness="0,0,0,1">
             
             <Grid ColumnDefinitions="Auto, *">
@@ -21,7 +24,7 @@
                            FontSize="20" 
                            VerticalAlignment="Center" 
                            Margin="0,0,30,0"
-                           Foreground="White"/> 
+                           Foreground="{DynamicResource TextPrimaryBrush}"/> 
                 
             </Grid>
         </Border>

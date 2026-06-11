@@ -9,8 +9,8 @@
 
     <UserControl.Styles>
         <Style Selector="Button.DashboardCard">
-            <Setter Property="Background" Value="#2d2d2d"/>
-            <Setter Property="BorderBrush" Value="#3d3d3d"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Padding" Value="20"/>
@@ -25,14 +25,14 @@
             </Setter>
         </Style>
         <Style Selector="Button.DashboardCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#373737"/>
-            <Setter Property="BorderBrush" Value="#4f4f4f"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
         </Style>
         <Style Selector="Button.DashboardCard:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.02)"/>
         </Style>
         <Style Selector="Button.DashboardCard:pressed /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Background" Value="{DynamicResource SurfacePressedBrush}"/>
             <Setter Property="BorderBrush" Value="#3b82f6"/>
         </Style>
         <Style Selector="Button.DashboardCard:pressed">
@@ -42,18 +42,15 @@
 
     <Grid>
 
-        <!-- Właściwa treść -->
         <Grid Margin="30" RowDefinitions="Auto, Auto, *">
 
-       
-            <!-- Nagłówek -->
             <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,20">
                 <Button Grid.Column="0" Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="12,8">
-                    <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+                    <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="{DynamicResource TextPrimaryBrush}"/>
                 </Button>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2" Margin="15,0">
-                    <TextBlock x:Name="StatusText" Text="Lista pacjentów" FontSize="24" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock x:Name="SubStatusText" Text="Zarządzaj kartoteką pacjentów" FontSize="13" Foreground="Gray"/>
+                    <TextBlock x:Name="StatusText" Text="Lista pacjentów" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock x:Name="SubStatusText" Text="Zarządzaj kartoteką pacjentów" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <Button Grid.Column="2" Name="AddPatientButton"
                         VerticalAlignment="Center"
@@ -68,21 +65,18 @@
                 </Button>
             </Grid>
 
-<!-- Row 1 pusty – licznik usunięty -->
-<Grid Grid.Row="1"/>
+            <Grid Grid.Row="1"/>
 
-            <!-- Lista pacjentów -->
             <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="PatientListPanel" Spacing="10" MaxWidth="1100" HorizontalAlignment="Stretch"/>
             </ScrollViewer>
 
         </Grid>
 
-        <!-- Overlay "Dodaj pacjenta" -->
         <Grid x:Name="AddPatientOverlay" IsVisible="False">
             <Border Background="#000000" Opacity="0.6"/>
-            <Border Background="#1e1e1e"
-                    BorderBrush="#3d3d3d"
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource SurfaceBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="20"
                     Padding="32"
@@ -94,32 +88,32 @@
 
                     <Grid ColumnDefinitions="*, Auto">
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <TextBlock Text="Nowy pacjent" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                            <TextBlock Text="Wypełnij podstawowe dane" FontSize="13" Foreground="Gray"/>
+                            <TextBlock Text="Nowy pacjent" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Wypełnij podstawowe dane" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </StackPanel>
                         <Button Grid.Column="1" Name="CloseOverlayButton"
                                 Classes="ModernCard" Padding="8" VerticalAlignment="Top">
-                            <fa:SymbolIcon Symbol="Dismiss" FontSize="16" Foreground="Gray"/>
+                            <fa:SymbolIcon Symbol="Dismiss" FontSize="16" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         </Button>
                     </Grid>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Imię i nazwisko" FontSize="13" Foreground="Gray"/>
+                        <TextBlock Text="Imię i nazwisko" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <TextBox x:Name="NewPatientName" Watermark="np. Jan Kowalski" Height="38" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Data urodzenia" FontSize="13" Foreground="Gray"/>
+                        <TextBlock Text="Data urodzenia" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <TextBox x:Name="NewPatientDob" Watermark="RRRR-MM-DD" Height="38" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Numer telefonu" FontSize="13" Foreground="Gray"/>
+                        <TextBlock Text="Numer telefonu" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <TextBox x:Name="NewPatientPhone" Watermark="np. +48 600 000 000" Height="38" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Notatka wstępna" FontSize="13" Foreground="Gray"/>
+                        <TextBlock Text="Notatka wstępna" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                         <TextBox x:Name="NewPatientNote"
                                  Watermark="np. kontuzja kolana, rehabilitacja po operacji..."
                                  AcceptsReturn="True"

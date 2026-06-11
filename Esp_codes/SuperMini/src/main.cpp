@@ -5,12 +5,18 @@
 #include <Preferences.h>
 #include "time.h"
 #include <HX711.h>
+#include <math.h>
+
+// ==========================================
+// CONFIGURATION: Set to true for real sensors, false for fake sine wave
+// ==========================================
+const bool USE_HARDWARE_SCALES = true; 
 
 // --- Global Configurations ---
 Preferences preferences;
 String ssid = "";
 String password = "";
-String mqtt_server = ""; // Loaded dynamically from NVS
+String mqtt_server = ""; 
 
 const char* publish_topic = "esp32/scale/telemetry";
 const char* ntpServer = "pool.ntp.org";
@@ -19,8 +25,13 @@ const int   daylightOffset_sec = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-unsigned long lastMsg = 0;
 unsigned long lastReconnectAttempt = 0;
+
+// --- Batching Configuration ---
+const int BATCH_SIZE = 25; // Keeping your change to 100
+float batchLeft[BATCH_SIZE];
+float batchRight[BATCH_SIZE];
+int batchIndex = 0;
 
 // --- HX711 Configuration ---
 const int HX711_DOUT_LEFT = 3; 
@@ -31,6 +42,9 @@ const int HX711_SCK_RIGHT  = 6;
 HX711 scaleLeft;
 HX711 scaleRight;
 
+// --- Fake Data Variables ---
+unsigned long lastSimulatedRead = 0;
+
 // --- Function Prototypes ---
 void sync_time();
 void reconnect();
@@ -39,18 +53,37 @@ bool testWifiConnection(String testSsid, String testPass);
 
 void setup() {
   Serial.begin(115200);
-  
-  scaleLeft.begin(HX711_DOUT_LEFT, HX711_SCK_LEFT);
-  scaleRight.begin(HX711_DOUT_RIGHT, HX711_SCK_RIGHT);
-  
-  Serial.println("[ESP] Scales initialized. Taring... do not apply weight.");
-  scaleLeft.set_scale(16000.f);
-  scaleRight.set_scale(23800.f);
-  scaleLeft.tare();
-  scaleRight.tare();
-  Serial.println("[ESP] Taring complete.");
+  delay(1000); 
 
-  xTaskCreate(serial_config_task, "serial_config_task", 4096, NULL, 5, NULL);
+  // *** THE FIX IS HERE ***
+  // Increase buffer size to handle large JSON payloads from BATCH_SIZE = 100
+  client.setBufferSize(4096); 
+
+  xTaskCreatePinnedToCore(
+      serial_config_task, 
+      "serial_config_task", 
+      4096, 
+      NULL, 
+      1,
+      NULL,
+      0
+  );
+
+  if (USE_HARDWARE_SCALES) {
+    Serial.println("[ESP] Hardware Mode: Initializing HX711...");
+    scaleLeft.begin(HX711_DOUT_LEFT, HX711_SCK_LEFT);
+    scaleRight.begin(HX711_DOUT_RIGHT, HX711_SCK_RIGHT);
+    
+    Serial.println("[ESP] Scales initialized. Taring... do not apply weight.");
+    scaleLeft.set_scale(16000.f);
+    scaleRight.set_scale(-23800.f);
+    
+    scaleLeft.tare();
+    scaleRight.tare();
+    Serial.println("[ESP] Taring complete.");
+  } else {
+    Serial.println("[ESP] Simulation Mode: HX711 bypassed. Generating Sine Waves.");
+  }
 
   preferences.begin("wifi_creds", true);
   ssid = preferences.getString("ssid", "");
@@ -61,32 +94,8 @@ void setup() {
   if (ssid.length() > 0) {
     Serial.printf("\n[ESP] Connecting to SSID: %s\n", ssid.c_str());
     WiFi.begin(ssid.c_str(), password.c_str());
-    
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-      delay(500);
-      Serial.print(".");
-      attempts++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.printf("\n[ESP] WiFi Connected!\n");
-      Serial.printf("[ESP] IP Address: ");
-      Serial.println(WiFi.localIP());
-      
-      sync_time();
-      
-      if (mqtt_server.length() > 0) {
-        Serial.printf("[ESP] Setting MQTT Broker to: %s\n", mqtt_server.c_str());
-        client.setServer(mqtt_server.c_str(), 1883);
-      } else {
-        Serial.printf("[ESP] No MQTT Broker IP found.\n");
-      }
-    } else {
-      Serial.printf("\n[ESP] WiFi Connection Failed.\n");
-    }
   } else {
-    Serial.printf("\n[ESP] No WiFi credentials found.\n");
+    Serial.printf("\n[ESP] No WiFi credentials found. Waiting for configuration via Serial.\n");
   }
 }
 
@@ -130,19 +139,34 @@ void serial_config_task(void *pvParameters) {
               Serial.println("[ESP] MQTT_CONFIRMED");
             }
           }
+          else if (inputBuffer.startsWith("DISCONNECT_CMD")) {
+               preferences.begin("wifi_creds", false);
+               preferences.clear();
+               preferences.end();
+               Serial.println("DISCONNECTED_OK");
+               delay(500);
+               ESP.restart();
+          }
           else if (inputBuffer.startsWith("TARE")) {
-            Serial.println("[ESP] Taring scales...");
-            scaleLeft.tare();
-            scaleRight.tare();
-            Serial.println("[ESP] Taring complete.");
+            if (USE_HARDWARE_SCALES) {
+                Serial.println("[ESP] Taring scales...");
+                scaleLeft.tare();
+                scaleRight.tare();
+                Serial.println("[ESP] Taring complete.");
+            } else {
+                Serial.println("[ESP] Simulation Mode: Tare ignored.");
+            }
           }
           inputBuffer = "";
         }
       } else {
         inputBuffer += c; 
+        if (inputBuffer.length() > 256) {
+          inputBuffer = ""; 
+        }
       }
     }
-    vTaskDelay(10 / portTICK_PERIOD_MS); 
+    vTaskDelay(50 / portTICK_PERIOD_MS);
   }
 }
 
@@ -152,7 +176,7 @@ bool testWifiConnection(String testSsid, String testPass) {
   WiFi.begin(testSsid.c_str(), testPass.c_str());
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-    delay(500);
+    delay(500); 
     Serial.print(".");
     attempts++;
   }
@@ -162,9 +186,11 @@ bool testWifiConnection(String testSsid, String testPass) {
 
 void sync_time() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  while (time(nullptr) < 1000) {
+  int attempts = 0;
+  while (time(nullptr) < 1000 && attempts < 10) {
     delay(500);
     Serial.print(".");
+    attempts++;
   }
   Serial.println();
 }
@@ -180,50 +206,64 @@ void reconnect() {
 }
 
 void loop() {
-  if (WiFi.status() == WL_CONNECTED && mqtt_server.length() > 0) {
-    if (!client.connected()) {
-      unsigned long now = millis();
-      if (now - lastReconnectAttempt > 5000) {
-        lastReconnectAttempt = now;
-        reconnect();
-      }
-    } else {
-      client.loop();
-      unsigned long now = millis();
-      if (now - lastMsg >= 300) {
-        lastMsg = now;
-        
-        float weightLeft = 0.0;
-        if (scaleLeft.is_ready()) {
-          weightLeft = scaleLeft.get_units(1) * -1; // Invert signal
-        }
-        
-        float weightRight = 0.0;
-        if (scaleRight.is_ready()) {
-          weightRight = scaleRight.get_units(1)*1;
-        }
-        
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-        
-        JsonDocument docLeft;
-        docLeft["deviceId"] = "Left";
-        docLeft["weight"] = weightLeft;
-        docLeft["timestamp_s"] = (uint64_t)tv.tv_sec;
-        docLeft["timestamp_ms"] = (uint16_t)(tv.tv_usec / 1000);
-        char jsonBufferLeft[256];
-        serializeJson(docLeft, jsonBufferLeft);
-        client.publish(publish_topic, jsonBufferLeft);
+  if (WiFi.status() == WL_CONNECTED) {
+      if (mqtt_server.length() > 0) {
+        if (!client.connected()) {
+          unsigned long now = millis();
+          if (now - lastReconnectAttempt > 5000) {
+            lastReconnectAttempt = now;
+            reconnect();
+          }
+        } else {
+          client.loop();
 
-        JsonDocument docRight;
-        docRight["deviceId"] = "Right";
-        docRight["weight"] = weightRight;
-        docRight["timestamp_s"] = (uint64_t)tv.tv_sec;
-        docRight["timestamp_ms"] = (uint16_t)(tv.tv_usec / 1000);
-        char jsonBufferRight[256];
-        serializeJson(docRight, jsonBufferRight);
-        client.publish(publish_topic, jsonBufferRight);
+          bool gotNewData = false;
+
+          if (USE_HARDWARE_SCALES) {
+              if (scaleLeft.is_ready() && scaleRight.is_ready()) {
+                batchLeft[batchIndex] = scaleLeft.get_units(1);
+                batchRight[batchIndex] = scaleRight.get_units(1);
+                gotNewData = true;
+              }
+          } else {
+              if (millis() - lastSimulatedRead >= 12) {
+                  lastSimulatedRead = millis();
+                  float timeSec = millis() / 1000.0;
+                  batchLeft[batchIndex] = 100.0 + 100.0 * sin(2.0 * PI * 0.5 * timeSec);
+                  batchRight[batchIndex] = 100.0 + 100.0 * cos(2.0 * PI * 0.5 * timeSec);
+                  gotNewData = true;
+              }
+          }
+
+          if (gotNewData) {
+            batchIndex++;
+
+            if (batchIndex >= BATCH_SIZE) {
+              struct timeval tv;
+              gettimeofday(&tv, NULL);
+
+              JsonDocument doc;
+              doc["timestamp_s"] = (uint64_t)tv.tv_sec;
+              doc["timestamp_ms"] = (uint16_t)(tv.tv_usec / 1000);
+              
+              JsonArray leftArray = doc["left"].to<JsonArray>();
+              JsonArray rightArray = doc["right"].to<JsonArray>();
+              
+              for (int i = 0; i < BATCH_SIZE; i++) {
+                leftArray.add(batchLeft[i]);
+                rightArray.add(batchRight[i]);
+              }
+
+              char jsonBuffer[2048]; // Match the buffer size
+              serializeJson(doc, jsonBuffer);
+              client.publish(publish_topic, jsonBuffer);
+              
+              batchIndex = 0; 
+            }
+          }
+        }
       }
-    }
+  } else {
+      delay(100); 
   }
 }

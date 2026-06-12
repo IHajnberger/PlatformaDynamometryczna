@@ -198,11 +198,25 @@
                         
                         <Grid Grid.Row="1" ColumnDefinitions="*,*">
                             <Grid Grid.Column="0" Name="LeftChartContainer">
-                                <lvc:CartesianChart Name="LeftChart" Series="{Binding LeftChartSeries}" XAxes="{Binding XAxesLeft}" YAxes="{Binding YAxes}" LegendPosition="Hidden" ZoomMode="X"/>
+                                <lvc:CartesianChart Name="LeftChart" 
+                                                    Series="{Binding LeftChartSeries}" 
+                                                    XAxes="{Binding XAxesLeft}" 
+                                                    YAxes="{Binding YAxes}" 
+                                                    LegendPosition="Hidden" 
+                                                    ZoomMode="X"
+                                                    TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                    TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"/>
                             </Grid>
 
                             <Grid Grid.Column="1" Name="RightChartContainer">
-                                <lvc:CartesianChart Name="RightChart" Series="{Binding RightChartSeries}" XAxes="{Binding XAxesRight}" YAxes="{Binding YAxes}" LegendPosition="Hidden" ZoomMode="X"/>
+                                <lvc:CartesianChart Name="RightChart" 
+                                                    Series="{Binding RightChartSeries}" 
+                                                    XAxes="{Binding XAxesRight}" 
+                                                    YAxes="{Binding YAxes}" 
+                                                    LegendPosition="Hidden" 
+                                                    ZoomMode="X"
+                                                    TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                    TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"/>
                             </Grid>
                         </Grid>
                     </Grid>

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -24,9 +25,15 @@ public partial class SessionDetailView : UserControl
     public Axis[] YAxes { get; set; }
     public SolidColorPaint LegendPaint { get; set; } = new(SKColors.White);
 
+    public SolidColorPaint TooltipTextPaint { get; set; } = new(SKColors.White);
+    public SolidColorPaint TooltipBackgroundPaint { get; set; } = new(new SKColor(45, 45, 48));
+
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
     
+    private const int ViewWindowSize = 400; 
+
+    private bool _isUpdatingFromScroll = false;
     private Session _session;
     private Dictionary<ExerciseParam, Border> _paramBorders = new();
 
@@ -50,7 +57,7 @@ public partial class SessionDetailView : UserControl
         {
             new LineSeries<double>
             {
-                Name = "Left Scale",
+                Name = "Waga Lewa",
                 Values = new ObservableCollection<double>(session.LeftChartData ?? new()),
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -62,7 +69,9 @@ public partial class SessionDetailView : UserControl
                 AnimationsSpeed = TimeSpan.Zero, 
                 GeometryFill = new SolidColorPaint(leftColor),
                 GeometryStroke = new SolidColorPaint(leftColor) { StrokeThickness = 2 },
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut,
+                YToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue:F2} Kg",
+                XToolTipLabelFormatter = point => $"Czas: {point.Coordinate.SecondaryValue * 0.012:F2} s",
             }
         };
 
@@ -70,7 +79,7 @@ public partial class SessionDetailView : UserControl
         {
             new LineSeries<double>
             {
-                Name = "Right Scale",
+                Name = "Waga Prawa",
                 Values = new ObservableCollection<double>(session.RightChartData ?? new()),
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -82,17 +91,17 @@ public partial class SessionDetailView : UserControl
                 AnimationsSpeed = TimeSpan.Zero, 
                 GeometryFill = new SolidColorPaint(rightColor),
                 GeometryStroke = new SolidColorPaint(rightColor) { StrokeThickness = 2 },
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut,
+                YToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue:F2} Kg",
+                XToolTipLabelFormatter = point => $"Czas: {point.Coordinate.SecondaryValue * 0.012:F2} s",
             }
         };
         
-        // Remove MinLimit and MaxLimit to let LiveCharts auto-scale to the full session
-        // This makes ZoomMode="X" work perfectly.
         _leftXAxis = new Axis
         {
             TextSize = 11,
             LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
-            Labeler = value => (value * 0.012).ToString("F1") , 
+            Labeler = value => (value * 0.012).ToString("F1") ,
             SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
             MinStep = 1000.0 / 12.0
         };

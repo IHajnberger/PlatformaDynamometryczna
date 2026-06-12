@@ -23,9 +23,14 @@ public partial class DataView : UserControl, IDisposable
 
     private readonly ObservableCollection<double> _leftValues = new();
     private readonly ObservableCollection<double> _rightValues = new();
+    private List<double> _backupLeftValues = new();
+    private List<double> _backupRightValues = new();
 
     private readonly List<(double Weight, DateTime Timestamp)> _leftBuffer = new();
     private readonly List<(double Weight, DateTime Timestamp)> _rightBuffer = new();
+    private List<(double Weight, DateTime Timestamp)> _backupLeftBuffer = new();
+    private List<(double Weight, DateTime Timestamp)> _backupRightBuffer = new();
+    
     private const int BufferSize = 200;
     private int _updateCounter = 0;
 
@@ -36,6 +41,9 @@ public partial class DataView : UserControl, IDisposable
     public Axis[] XAxesRight { get; set; }
     public Axis[] YAxes { get; set; }
     public SolidColorPaint LegendPaint { get; set; } = new(SKColors.White);
+    
+    public SolidColorPaint TooltipTextPaint { get; set; } = new(SKColors.White);
+    public SolidColorPaint TooltipBackgroundPaint { get; set; } = new(new SKColor(45, 45, 48));
 
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
@@ -55,95 +63,70 @@ public partial class DataView : UserControl, IDisposable
 
         BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
 
+        UndoFormatButton.Click += (s, e) =>
+        {
+            _leftValues.Clear();
+            _rightValues.Clear();
+            foreach(var v in _backupLeftValues) _leftValues.Add(v);
+            foreach(var v in _backupRightValues) _rightValues.Add(v);
+
+            _leftBuffer.Clear();
+            _rightBuffer.Clear();
+            foreach(var v in _backupLeftBuffer) _leftBuffer.Add(v);
+            foreach(var v in _backupRightBuffer) _rightBuffer.Add(v);
+
+            _leftXAxis.MinLimit = null;
+            _leftXAxis.MaxLimit = null;
+            _rightXAxis.MinLimit = null;
+            _rightXAxis.MaxLimit = null;
+
+            UndoFormatButton.IsVisible = false;
+            FormatDataButton.IsVisible = true;
+            StatusText.Text = "Status: Przywrócono oryginalne dane.";
+        };
+
         FormatDataButton.Click += (s, e) =>
         {
-            if (_leftValues.Count == 0 && _rightValues.Count == 0) return;
-
-            // Znajdź indeksy pierwszego i ostatniego punktu, który jest większy niż mały próg (np. 1 kg)
-            // Używamy zsumowanej siły z obu platform, żeby nie uciąć asymetrycznego początku
-            double threshold = 1.0; 
-
-            int startIndex = -1;
-            int endIndex = -1;
-            int count = Math.Min(_leftValues.Count, _rightValues.Count);
-
-            for (int i = 0; i < count; i++)
+            if ((_leftXAxis.MinLimit == null && _leftXAxis.MaxLimit == null) || (_leftValues.Count == 0 && _rightValues.Count == 0))
             {
-                double totalForce = _leftValues[i] + _rightValues[i];
-                if (totalForce > threshold)
-                {
-                    startIndex = i;
-                    break;
-                }
+                StatusText.Text = "Status: Najpierw przybliż interesujący fragment.";
+                return;
             }
 
-            for (int i = count - 1; i >= 0; i--)
-            {
-                double totalForce = _leftValues[i] + _rightValues[i];
-                if (totalForce > threshold)
-                {
-                    endIndex = i;
-                    break;
-                }
-            }
-
-            // Jeśli nie znaleziono żadnych punktów powyżej progu, nic nie robimy
-            if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) return;
-
-            // Zostawiamy mały bufor (np. 10 próbek przed i po)
-            startIndex = Math.Max(0, startIndex - 10);
-            endIndex = Math.Min(count - 1, endIndex + 10);
+            int startIndex = (int)Math.Max(0, _leftXAxis.MinLimit ?? 0);
+            int endIndex = (int)Math.Min(_leftValues.Count - 1, _leftXAxis.MaxLimit ?? _leftValues.Count - 1);
             int newLength = endIndex - startIndex + 1;
 
-            // Trim left and right values
+            if (newLength <= 0) return;
+
             var newLeftValues = _leftValues.Skip(startIndex).Take(newLength).ToList();
             var newRightValues = _rightValues.Skip(startIndex).Take(newLength).ToList();
 
             _leftValues.Clear();
             _rightValues.Clear();
-
             foreach (var v in newLeftValues) _leftValues.Add(v);
             foreach (var v in newRightValues) _rightValues.Add(v);
 
-            // Trim buffers if they are fully populated (if not, we clear them to recalculate properly)
-            // Jeśli bufor ma mniej elementów niż _leftValues, to nie ma sensu go przycinać, 
-            // bo i tak jest to tylko "okno z przeszłości". 
-            // Najlepiej przeliczyć z całego skróconego zakresu.
             _leftBuffer.Clear();
             _rightBuffer.Clear();
-            
-            // Ponieważ _leftBuffer miał timestampy, musimy je jakoś zrekonstruować lub po prostu
-            // użyć aktualnych wyciętych danych. Wstawiamy mockowe timestampy dla Calculate.
             DateTime start = DateTime.Now.AddMilliseconds(-newLength * 12);
-            for (int i = 0; i < newLeftValues.Count; i++)
-            {
-                _leftBuffer.Add((newLeftValues[i], start.AddMilliseconds(i * 12)));
-            }
-            for (int i = 0; i < newRightValues.Count; i++)
-            {
-                _rightBuffer.Add((newRightValues[i], start.AddMilliseconds(i * 12)));
-            }
+            for (int i = 0; i < newLeftValues.Count; i++) _leftBuffer.Add((newLeftValues[i], start.AddMilliseconds(i * 12)));
+            for (int i = 0; i < newRightValues.Count; i++) _rightBuffer.Add((newRightValues[i], start.AddMilliseconds(i * 12)));
 
-            // Zaktualizuj osie i scrollbary
-            _leftXAxis.MinLimit = 0;
-            _leftXAxis.MaxLimit = _leftValues.Count;
-            _rightXAxis.MinLimit = 0;
-            _rightXAxis.MaxLimit = _rightValues.Count;
+            _leftXAxis.MinLimit = null;
+            _leftXAxis.MaxLimit = null;
+            _rightXAxis.MinLimit = null;
+            _rightXAxis.MaxLimit = null;
 
-            LeftScrollBar.Maximum = Math.Max(0, _leftValues.Count - ViewWindowSize);
-            RightScrollBar.Maximum = Math.Max(0, _rightValues.Count - ViewWindowSize);
-            LeftScrollBar.Value = 0;
-            RightScrollBar.Value = 0;
-
-            // Przelicz statystyki na obciętym wykresie
             if (_leftBuffer.Count > 0 || _rightBuffer.Count > 0)
             {
                 var result = BiomechanicsService.Calculate(_leftBuffer, _rightBuffer);
                 UpdateStats(result);
             }
 
-            StatusText.Text = "Status: Wyniki zostały sformatowane (ucięto końcówki).";
-            StatusText.Foreground = Brushes.Cyan;
+            FormatDataButton.IsVisible = false;
+            UndoFormatButton.IsVisible = true;
+            StatusText.Text = "Status: Wyniki zostały przycięte do widoku.";
         };
 
         SaveSessionButton.Click += (s, e) =>
@@ -191,7 +174,7 @@ public partial class DataView : UserControl, IDisposable
         {
             new LineSeries<double>
             {
-                Name = "Waga Lewa (Kg)",
+                Name = "Waga Lewa",
                 Values = _leftValues,
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -203,7 +186,9 @@ public partial class DataView : UserControl, IDisposable
                 AnimationsSpeed = TimeSpan.Zero, 
                 GeometryFill = new SolidColorPaint(leftColor),
                 GeometryStroke = new SolidColorPaint(leftColor) { StrokeThickness = 2 },
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut,
+                YToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue:F2} Kg",
+                XToolTipLabelFormatter = point => $"Czas: {point.Coordinate.SecondaryValue * 0.012:F2} s",
             }
         };
 
@@ -211,7 +196,7 @@ public partial class DataView : UserControl, IDisposable
         {
             new LineSeries<double>
             {
-                Name = "Waga Prawa (Kg)",
+                Name = "Waga Prawa",
                 Values = _rightValues,
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -223,7 +208,9 @@ public partial class DataView : UserControl, IDisposable
                 AnimationsSpeed = TimeSpan.Zero, 
                 GeometryFill = new SolidColorPaint(rightColor),
                 GeometryStroke = new SolidColorPaint(rightColor) { StrokeThickness = 2 },
-                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut
+                EasingFunction = LiveChartsCore.EasingFunctions.CubicOut,
+                YToolTipLabelFormatter = point => $"{point.Coordinate.PrimaryValue:F2} Kg",
+                XToolTipLabelFormatter = point => $"Czas: {point.Coordinate.SecondaryValue * 0.012:F2} s",
             }
         };
         
@@ -231,7 +218,7 @@ public partial class DataView : UserControl, IDisposable
         {
             TextSize = 11,
             LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
-            Labeler = value => (value * 0.012).ToString("F1") , 
+            Labeler = value => (value * 0.012).ToString("F1"),
             SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
             MinLimit = 0,
             MaxLimit = ViewWindowSize,
@@ -338,6 +325,19 @@ public partial class DataView : UserControl, IDisposable
                         new Avalonia.Controls.TextBlock { Text = "Start", FontWeight =Avalonia.Media.FontWeight.Bold}
                     }
                 };
+                
+                _backupLeftValues = _leftValues.ToList();
+                _backupRightValues = _rightValues.ToList();
+                _backupLeftBuffer = _leftBuffer.ToList();
+                _backupRightBuffer = _rightBuffer.ToList();
+
+                _leftXAxis.MinLimit = null;
+                _leftXAxis.MaxLimit = null;
+                _rightXAxis.MinLimit = null;
+                _rightXAxis.MaxLimit = null;
+
+                FormatDataButton.IsVisible = true;
+                InstructionText.IsVisible = true;
             }
             else
             {
@@ -367,6 +367,10 @@ public partial class DataView : UserControl, IDisposable
                         new Avalonia.Controls.TextBlock { Text = "Stop" , FontWeight =Avalonia.Media.FontWeight.Bold}
                     }
                 };
+                
+                FormatDataButton.IsVisible = false;
+                UndoFormatButton.IsVisible = false;
+                InstructionText.IsVisible = false;
             }
         };
 

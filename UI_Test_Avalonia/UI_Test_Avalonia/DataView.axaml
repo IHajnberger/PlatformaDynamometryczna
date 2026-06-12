@@ -206,9 +206,13 @@
                 <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,0,0,15">
                     <Grid RowDefinitions="Auto, *">
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
-                            <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="InstructionText" Text="(Zatrzymaj sesję, przybliż scrollem interesujący fragment i kliknij 'Przytnij')" FontSize="12" Foreground="Gray" VerticalAlignment="Center" IsVisible="False"/>
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                                <Button x:Name="FormatDataButton" Content="Sformatuj wyniki" Classes="ModernCard" CornerRadius="6" Padding="12,5" Background="#8b5cf6" IsVisible="True"/>
+                                <Button x:Name="UndoFormatButton" Content="Cofnij" Classes="ModernCard" CornerRadius="6" Padding="12,5" Background="#6b7280" IsVisible="False"/>
+                                <Button x:Name="FormatDataButton" Content="Przytnij" Classes="ModernCard" CornerRadius="6" Padding="12,5" Background="#8b5cf6" IsVisible="True" ToolTip.Tip="Przycina zapisane dane do obszaru widocznego aktualnie na wykresie. Odsuwa puste lub niechciane fragmenty z początku i końca ćwiczenia."/>
                                 <Button x:Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5"/>
                             </StackPanel>
                         </DockPanel>
@@ -220,7 +224,9 @@
                                                     XAxes="{Binding XAxesLeft}"
                                                     YAxes="{Binding YAxes}"
                                                     ZoomMode="X"
-                                                    LegendPosition="Hidden"/>
+                                                    LegendPosition="Hidden"
+                                                    TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                    TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"/>
                                 <ScrollBar Name="LeftScrollBar" Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0" Height="12" Opacity="0">
                                     <ScrollBar.Transitions>
                                         <Transitions>
@@ -235,7 +241,9 @@
                                                     XAxes="{Binding XAxesRight}"
                                                     YAxes="{Binding YAxes}"
                                                     ZoomMode="X"
-                                                    LegendPosition="Hidden"/>
+                                                    LegendPosition="Hidden"
+                                                    TooltipTextPaint="{Binding TooltipTextPaint}"
+                                                    TooltipBackgroundPaint="{Binding TooltipBackgroundPaint}"/>
                                 <ScrollBar Name="RightScrollBar" Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0" Height="12" Opacity="0">
                                     <ScrollBar.Transitions>
                                         <Transitions>

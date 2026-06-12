@@ -5,9 +5,7 @@ using Avalonia.Media;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-
 
 namespace UI_Test_Avalonia;
 
@@ -15,6 +13,7 @@ public partial class ProfileView : UserControl
 {
     public event EventHandler? BackClicked;
     public event EventHandler? PatientDeleted;
+    public event EventHandler<Session>? SessionSelected;
 
     private Patient? _patient;
     private string _originalNotes = "";
@@ -268,7 +267,6 @@ public partial class ProfileView : UserControl
 
             if (isLeft)
             {
-                // Zaokrąglenie tylko na górze
                 path.MoveTo(x, barTop + r);
                 path.QuadTo(x, barTop, x + r, barTop);
                 path.LineTo(x + (float)barW - r, barTop);
@@ -279,7 +277,6 @@ public partial class ProfileView : UserControl
             }
             else
             {
-                // Zaokrąglenie tylko na dole
                 path.MoveTo(x, barTop);
                 path.LineTo(x + (float)barW, barTop);
                 path.LineTo(x + (float)barW, barTop + barHeight - r);
@@ -291,7 +288,6 @@ public partial class ProfileView : UserControl
 
             canvas.DrawPath(path, fillPaint);
 
-            // Krawędzie bez poziomej linii przy osi zerowej
             if (isLeft)
             {
                 canvas.DrawLine(x, barTop + r, x, barTop + barHeight, edgePaint);
@@ -456,7 +452,7 @@ public partial class ProfileView : UserControl
                 }
                 }
             };
-            detailBtn.Click += (s, e) => { /* placeholder */ };
+            detailBtn.Click += (s, e) => { SessionSelected?.Invoke(this, session); };
 
             Grid.SetColumn(icon, 0);
             Grid.SetColumn(nameBlock, 1);

@@ -207,7 +207,10 @@
                     <Grid RowDefinitions="Auto, *">
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
                             <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Button x:Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5" HorizontalAlignment="Right"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                                <Button x:Name="FormatDataButton" Content="Sformatuj wyniki" Classes="ModernCard" CornerRadius="6" Padding="12,5" Background="#8b5cf6" IsVisible="True"/>
+                                <Button x:Name="SaveSessionButton" Content="Zapisz Sesję" Classes="ModernCard" CornerRadius="6" Padding="12,5"/>
+                            </StackPanel>
                         </DockPanel>
 
                         <Grid Grid.Row="1" ColumnDefinitions="1*, 1*">

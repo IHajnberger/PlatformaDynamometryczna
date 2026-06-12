@@ -47,6 +47,9 @@ public class Session
     public double TotalForce { get; set; }
     public double ControlScore { get; set; }
     public double FatigueIndex { get; set; }
+
+    public List<double> LeftChartData { get; set; } = new();
+    public List<double> RightChartData { get; set; } = new();
 }
 
 public sealed class SessionService

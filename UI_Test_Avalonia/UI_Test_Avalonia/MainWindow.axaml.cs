@@ -51,6 +51,12 @@ public partial class MainWindow : Window
                 var profileView = new ProfileView(patient, mode: "patient");
                 profileView.BackClicked += (s, e) => MainContentArea.Content = patientsView;
                 profileView.PatientDeleted += (s, e) => MainContentArea.Content = patientsView;
+                profileView.SessionSelected += (s, session) =>
+                {
+                    var sessionDetailView = new SessionDetailView(session);
+                    sessionDetailView.BackClicked += (s, e) => MainContentArea.Content = profileView;
+                    MainContentArea.Content = sessionDetailView;
+                };
                 MainContentArea.Content = profileView;
             };
             MainContentArea.Content = patientsView;
@@ -82,6 +88,12 @@ public partial class MainWindow : Window
                 ? new ProfileView(PatientService.Instance.ActivePatient, mode: "patient_self")
                 : new ProfileView(mode: "physio");
             profileView.BackClicked += (s, e) => ShowMainApp(_currentUserRole);
+            profileView.SessionSelected += (s, session) =>
+            {
+                var sessionDetailView = new SessionDetailView(session);
+                sessionDetailView.BackClicked += (s, e) => MainContentArea.Content = profileView;
+                MainContentArea.Content = sessionDetailView;
+            };
             MainContentArea.Content = profileView;
         };
 

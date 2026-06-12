@@ -36,17 +36,17 @@ float batchRight[BATCH_SIZE];
 int batchIndex = 0;
 
 // --- HX711 Configuration ---
-const int HX711_DOUT_LEFT = 3; 
-const int HX711_SCK_LEFT  = 4; 
-const int HX711_DOUT_RIGHT = 5;
-const int HX711_SCK_RIGHT  = 6;
+const int HX711_DOUT_LEFT = 5; 
+const int HX711_SCK_LEFT  = 6; 
+const int HX711_DOUT_RIGHT = 3;
+const int HX711_SCK_RIGHT  = 4;
 
 HX711 scaleLeft;
 HX711 scaleRight;
 
 // --- Calibration Variables (with your calculated defaults) ---
-float calFactorLeft = 23246.00f;
-float calFactorRight = -23607.00f;
+float calFactorLeft = -21372.09f;
+float calFactorRight = 19658.60f  ;
 
 // --- Fake Data Variables ---
 unsigned long lastSimulatedRead = 0;
@@ -67,8 +67,8 @@ void setup() {
 
   // --- Load Calibration from Memory ---
   calPrefs.begin("calibration", true); // true = Read Only
-  calFactorLeft = calPrefs.getFloat("cal_left", 23246.00f); 
-  calFactorRight = calPrefs.getFloat("cal_right", -23607.00f); 
+  calFactorLeft = calPrefs.getFloat("cal_left", -21372.09); 
+  calFactorRight = calPrefs.getFloat("cal_right", 19658.60); 
   calPrefs.end();
 
   xTaskCreatePinnedToCore(

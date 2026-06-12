@@ -1,0 +1,213 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:fa="using:FluentAvalonia.UI.Controls"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:local="clr-namespace:UI_Test_Avalonia"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="UI_Test_Avalonia.SessionDetailView"
+             x:DataType="local:SessionDetailView">
+
+    <Grid Margin="20" RowDefinitions="Auto, *">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,20">
+            <Button Name="BackButton" VerticalAlignment="Center" Classes="ModernCard" Padding="8,6">
+                <fa:SymbolIcon Symbol="Back" FontSize="20" Foreground="White"/>
+            </Button>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock x:Name="TitleText" Text="Szczegóły sesji" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                <TextBlock x:Name="DateText" Text="Data: --" FontSize="13" Foreground="Gray"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="1*, 3*" Background="Transparent">
+
+            <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *" Margin="0,0,15,0">
+
+                <Border Grid.Row="0" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,0,0,10">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <fa:SymbolIcon Symbol="People" Foreground="#10b981" FontSize="14"/>
+                            <TextBlock Text="Informacje" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                        </StackPanel>
+                        <Border Background="#222222" CornerRadius="6" Padding="10,8">
+                            <DockPanel>
+                                <TextBlock Text="Ćwiczenie" Foreground="Gray" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="12"/>
+                                <TextBlock x:Name="ExerciseText" Text="--" FontWeight="Bold" HorizontalAlignment="Right" FontSize="12" Foreground="White"/>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,0,0,10">
+                    <StackPanel Spacing="10">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="8">
+                            <fa:SymbolIcon Symbol="Target" Foreground="#3b82f6" FontSize="16"/>
+                            <TextBlock Text="Wyniki (Całkowite)" FontWeight="Bold" FontSize="14" Foreground="White"/>
+                        </StackPanel>
+                        <StackPanel Spacing="8">
+                            <Border Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Peak Force" Foreground="Gray" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SummaryPeakText" Text="-- kg" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Mean Force" Foreground="Gray" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SummaryMeanText" Text="-- kg" FontWeight="Bold" Foreground="#3b82f6" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Asymmetry" Foreground="Gray" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SummaryAsymmetryText" Text="--%"  FontWeight="Bold" Foreground="#ef4444" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="12" Padding="15">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                                <fa:SymbolIcon Symbol="Filter" Foreground="#06b6d4" FontSize="14"/>
+                                <TextBlock Text="Parametry" FontWeight="Bold" FontSize="13" Foreground="White"/>
+                            </StackPanel>
+                            <Border x:Name="ParamPeakForceL" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Peak Force L" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="PeakForceLText" Text="-- kg" FontWeight="Bold" Foreground="#3b82f6" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border x:Name="ParamPeakForceR" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Peak Force R" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="PeakForceRText" Text="-- kg" FontWeight="Bold" Foreground="#f59e0b" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border x:Name="ParamMeanForceL" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Mean Force L" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="MeanForceLText" Text="-- kg" FontWeight="Bold" Foreground="#3b82f6" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border x:Name="ParamMeanForceR" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Mean Force R" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="MeanForceRText" Text="-- kg" FontWeight="Bold" Foreground="#f59e0b" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border x:Name="ParamLoadRatio" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Load Ratio" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="LoadRatioText" Text="L:-- R:--" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                            <Border x:Name="ParamAsymmetry" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Asymmetry" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="AsymmetryText" Text="--%"  FontWeight="Bold" Foreground="#ef4444" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+                       
+                            <Border x:Name="ParamRFD" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="RFD" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="RFDText" Text="-- kg/s" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamTotalForce" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Total Force" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TotalForceText" Text="-- kg" FontWeight="Bold" Foreground="#22c55e" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamStabilityIndex" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Stability Index" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="StabilityIndexText" Text="--" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamStabilizationTime" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Stabilization Time" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="StabilizationTimeText" Text="-- s" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamTimeToPeak" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Time To Peak" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TimeToPeakText" Text="-- s" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamTransferSpd" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Transfer Speed" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TransferSpeedText" Text="-- kg/s" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamSwayVelocity" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Sway Velocity" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SwayVelocityText" Text="--" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamForceVariability" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Force Variability" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ForceVariabilityText" Text="--" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamControlScore" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Control Score" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="ControlScoreText" Text="-- %" FontWeight="Bold" Foreground="#8b5cf6" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                            <Border x:Name="ParamFatigueIndex" Background="#222222" CornerRadius="6" Padding="10,8">
+                                <DockPanel>
+                                    <TextBlock Text="Fatigue Index" Foreground="Gray" FontSize="12" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="FatigueIndexText" Text="-- %" FontWeight="Bold" Foreground="#ef4444" HorizontalAlignment="Right"/>
+                                </DockPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Column="1" Margin="5,0,0,0">
+                <Border Background="#2d2d2d" BorderBrush="#3d3d3d" BorderThickness="1" CornerRadius="12" Padding="15" Margin="0,0,0,0">
+                    <Grid RowDefinitions="Auto, *">
+                        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                            <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Text="(Możesz przybliżać scrollem myszy i przesuwać prawym przyciskiem)" FontSize="12" Foreground="Gray" VerticalAlignment="Center" Margin="15,0,0,0"/>
+                        </DockPanel>
+                        
+                        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+                            <Grid Grid.Column="0" Name="LeftChartContainer">
+                                <lvc:CartesianChart Name="LeftChart" Series="{Binding LeftChartSeries}" XAxes="{Binding XAxesLeft}" YAxes="{Binding YAxes}" LegendPosition="Hidden" ZoomMode="X"/>
+                            </Grid>
+
+                            <Grid Grid.Column="1" Name="RightChartContainer">
+                                <lvc:CartesianChart Name="RightChart" Series="{Binding RightChartSeries}" XAxes="{Binding XAxesRight}" YAxes="{Binding YAxes}" LegendPosition="Hidden" ZoomMode="X"/>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

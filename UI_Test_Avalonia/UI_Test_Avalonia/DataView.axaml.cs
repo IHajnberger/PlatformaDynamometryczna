@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq; // DODANE: Wymagane do skalowania (metoda .Max())
+using System.Linq;
 
 namespace UI_Test_Avalonia;
 
@@ -40,14 +40,12 @@ public partial class DataView : UserControl, IDisposable
     private readonly Axis _leftXAxis;
     private readonly Axis _rightXAxis;
     
-    // ZMIANA 1: Zwiększone okno czasowe (np. 400 próbek * 12ms = 4.8 sekundy podążania)
     private const int ViewWindowSize = 400; 
 
     private bool _leftIsHistoryMode = false;
     private bool _rightIsHistoryMode = false;
     private bool _isUpdatingFromScroll = false;
 
-    // Słownik:
     private Dictionary<ExerciseParam, Border> _paramBorders = new();
 
     public DataView()
@@ -56,6 +54,97 @@ public partial class DataView : UserControl, IDisposable
         Debug.WriteLine("[DataView] Constructor called.");
 
         BackButton.Click += (sender, e) => BackClicked?.Invoke(this, EventArgs.Empty);
+
+        FormatDataButton.Click += (s, e) =>
+        {
+            if (_leftValues.Count == 0 && _rightValues.Count == 0) return;
+
+            // Znajdź indeksy pierwszego i ostatniego punktu, który jest większy niż mały próg (np. 1 kg)
+            // Używamy zsumowanej siły z obu platform, żeby nie uciąć asymetrycznego początku
+            double threshold = 1.0; 
+
+            int startIndex = -1;
+            int endIndex = -1;
+            int count = Math.Min(_leftValues.Count, _rightValues.Count);
+
+            for (int i = 0; i < count; i++)
+            {
+                double totalForce = _leftValues[i] + _rightValues[i];
+                if (totalForce > threshold)
+                {
+                    startIndex = i;
+                    break;
+                }
+            }
+
+            for (int i = count - 1; i >= 0; i--)
+            {
+                double totalForce = _leftValues[i] + _rightValues[i];
+                if (totalForce > threshold)
+                {
+                    endIndex = i;
+                    break;
+                }
+            }
+
+            // Jeśli nie znaleziono żadnych punktów powyżej progu, nic nie robimy
+            if (startIndex == -1 || endIndex == -1 || startIndex >= endIndex) return;
+
+            // Zostawiamy mały bufor (np. 10 próbek przed i po)
+            startIndex = Math.Max(0, startIndex - 10);
+            endIndex = Math.Min(count - 1, endIndex + 10);
+            int newLength = endIndex - startIndex + 1;
+
+            // Trim left and right values
+            var newLeftValues = _leftValues.Skip(startIndex).Take(newLength).ToList();
+            var newRightValues = _rightValues.Skip(startIndex).Take(newLength).ToList();
+
+            _leftValues.Clear();
+            _rightValues.Clear();
+
+            foreach (var v in newLeftValues) _leftValues.Add(v);
+            foreach (var v in newRightValues) _rightValues.Add(v);
+
+            // Trim buffers if they are fully populated (if not, we clear them to recalculate properly)
+            // Jeśli bufor ma mniej elementów niż _leftValues, to nie ma sensu go przycinać, 
+            // bo i tak jest to tylko "okno z przeszłości". 
+            // Najlepiej przeliczyć z całego skróconego zakresu.
+            _leftBuffer.Clear();
+            _rightBuffer.Clear();
+            
+            // Ponieważ _leftBuffer miał timestampy, musimy je jakoś zrekonstruować lub po prostu
+            // użyć aktualnych wyciętych danych. Wstawiamy mockowe timestampy dla Calculate.
+            DateTime start = DateTime.Now.AddMilliseconds(-newLength * 12);
+            for (int i = 0; i < newLeftValues.Count; i++)
+            {
+                _leftBuffer.Add((newLeftValues[i], start.AddMilliseconds(i * 12)));
+            }
+            for (int i = 0; i < newRightValues.Count; i++)
+            {
+                _rightBuffer.Add((newRightValues[i], start.AddMilliseconds(i * 12)));
+            }
+
+            // Zaktualizuj osie i scrollbary
+            _leftXAxis.MinLimit = 0;
+            _leftXAxis.MaxLimit = _leftValues.Count;
+            _rightXAxis.MinLimit = 0;
+            _rightXAxis.MaxLimit = _rightValues.Count;
+
+            LeftScrollBar.Maximum = Math.Max(0, _leftValues.Count - ViewWindowSize);
+            RightScrollBar.Maximum = Math.Max(0, _rightValues.Count - ViewWindowSize);
+            LeftScrollBar.Value = 0;
+            RightScrollBar.Value = 0;
+
+            // Przelicz statystyki na obciętym wykresie
+            if (_leftBuffer.Count > 0 || _rightBuffer.Count > 0)
+            {
+                var result = BiomechanicsService.Calculate(_leftBuffer, _rightBuffer);
+                UpdateStats(result);
+            }
+
+            StatusText.Text = "Status: Wyniki zostały sformatowane (ucięto końcówki).";
+            StatusText.Foreground = Brushes.Cyan;
+        };
 
         SaveSessionButton.Click += (s, e) =>
         {
@@ -67,12 +156,29 @@ public partial class DataView : UserControl, IDisposable
                 return;
             }
 
-            SessionService.Instance.AddSession(new Session
+            var session = new Session
             {
                 PatientId = activePatient.Id,
                 ExerciseName = ExerciseService.Instance.ActiveExercise?.Name ?? "Nieznane",
-                Date = DateTime.Now
-            });
+                Date = DateTime.Now,
+                LeftChartData = _leftValues.ToList(),
+                RightChartData = _rightValues.ToList()
+            };
+
+            if (_leftBuffer.Count > 0 || _rightBuffer.Count > 0)
+            {
+                var result = BiomechanicsService.Calculate(_leftBuffer, _rightBuffer);
+                session.PeakForceLeft = result.PeakForceLeft;
+                session.PeakForceRight = result.PeakForceRight;
+                session.MeanForceLeft = result.MeanForceLeft;
+                session.MeanForceRight = result.MeanForceRight;
+                session.LoadRatioLeft = result.LoadRatioLeft;
+                session.LoadRatioRight = result.LoadRatioRight;
+                session.AsymmetryIndex = result.AsymmetryIndex;
+                session.TotalForce = result.TotalForce;
+            }
+
+            SessionService.Instance.AddSession(session);
 
             StatusText.Text = $"Status: Sesja zapisana dla {activePatient.FullName}!";
             StatusText.Foreground = Brushes.Green;
@@ -85,7 +191,7 @@ public partial class DataView : UserControl, IDisposable
         {
             new LineSeries<double>
             {
-                Name = "Left Scale",
+                Name = "Waga Lewa (Kg)",
                 Values = _leftValues,
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -105,7 +211,7 @@ public partial class DataView : UserControl, IDisposable
         {
             new LineSeries<double>
             {
-                Name = "Right Scale",
+                Name = "Waga Prawa (Kg)",
                 Values = _rightValues,
                 GeometrySize = 0,
                 LineSmoothness = 0.75,
@@ -123,7 +229,7 @@ public partial class DataView : UserControl, IDisposable
         
         _leftXAxis = new Axis
         {
-            TextSize = 11, // Włączony tekst
+            TextSize = 11,
             LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
             Labeler = value => (value * 0.012).ToString("F1") , 
             SeparatorsPaint = new SolidColorPaint(SKColor.Parse("#333333").WithAlpha(35)) { StrokeThickness = 1, PathEffect = new DashEffect(new float[] { 4, 4 }) },
@@ -146,13 +252,12 @@ public partial class DataView : UserControl, IDisposable
         XAxesLeft = new Axis[] { _leftXAxis };
         XAxesRight = new Axis[] { _rightXAxis };
 
-        // ZMIANA 3: Twardy początkowy limit Y = 50
         YAxes = new Axis[]
         {
             new Axis
             {
                 MinLimit = 0,
-                MaxLimit = 50, // Minimalny "dach" to 50
+                MaxLimit = 50,
                 LabelsPaint = new SolidColorPaint(SKColor.Parse("#888888")),
                 TextSize = 11,
                 Padding = new LiveChartsCore.Drawing.Padding(0, 0, 10, 0),
@@ -249,7 +354,7 @@ public partial class DataView : UserControl, IDisposable
                 _rightXAxis.MinLimit = 0;
                 _rightXAxis.MaxLimit = ViewWindowSize;
                 
-                YAxes[0].MaxLimit = 50; // Reset Y axis
+                YAxes[0].MaxLimit = 50; 
 
                 _renderTimer.Start();
                 StopSessionButton.Content = new Avalonia.Controls.StackPanel
@@ -282,7 +387,7 @@ public partial class DataView : UserControl, IDisposable
             _rightXAxis.MinLimit = 0;
             _rightXAxis.MaxLimit = ViewWindowSize;
             
-            YAxes[0].MaxLimit = 50; // Reset Y axis
+            YAxes[0].MaxLimit = 50; 
         };
     }
 
@@ -374,13 +479,10 @@ public partial class DataView : UserControl, IDisposable
             var result = BiomechanicsService.Calculate(_leftBuffer, _rightBuffer);
             UpdateStats(result);
 
-            // ZMIANA 4: Dynamiczne wspólne skalowanie osi Y 
-            // Liczone co 10 ticków (~5 razy na sekundę) aby odciążyć UI
             double currentMax = 50.0;
             if (_leftValues.Count > 0) currentMax = Math.Max(currentMax, _leftValues.Max());
             if (_rightValues.Count > 0) currentMax = Math.Max(currentMax, _rightValues.Max());
 
-            // Skaluje do najwyższej znalezionej wartości + dodaje malutki margines (10%) u góry.
             YAxes[0].MaxLimit = currentMax > 50 ? currentMax * 1.1 : 50;
         }
     }

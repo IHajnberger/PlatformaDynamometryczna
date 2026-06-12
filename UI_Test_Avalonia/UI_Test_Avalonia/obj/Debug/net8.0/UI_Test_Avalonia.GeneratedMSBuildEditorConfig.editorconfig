@@ -56,5 +56,8 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 [/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/ProfileView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
+[/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/SessionDetailView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
 [/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/Wikipedia.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

@@ -143,11 +143,15 @@ public partial class HomeView : UserControl
     {
         var app = Application.Current;
         if (app is null) return;
+        
+        var newTheme = app.RequestedThemeVariant == Avalonia.Styling.ThemeVariant.Dark
+            ? Avalonia.Styling.ThemeVariant.Light
+            : Avalonia.Styling.ThemeVariant.Dark;
 
-        // Sprawdzamy obecny motyw i go odwracamy
-        if (app.RequestedThemeVariant == Avalonia.Styling.ThemeVariant.Dark)
+        App.SetAndSaveTheme(newTheme);
+
+        if (newTheme == Avalonia.Styling.ThemeVariant.Light)
         {
-            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Light;
             ThemeIcon.Symbol = FluentAvalonia.UI.Controls.Symbol.WeatherMoon;
             ThemeText.Text = "Ciemny motyw";
             ThemeIcon.Foreground = Brushes.SlateGray;
@@ -155,7 +159,6 @@ public partial class HomeView : UserControl
         }
         else
         {
-            app.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Dark;
             ThemeIcon.Symbol = FluentAvalonia.UI.Controls.Symbol.WeatherSunny;
             ThemeText.Text = "Jasny motyw";
             ThemeIcon.Foreground = new SolidColorBrush(Color.Parse("#eab308"));

@@ -13,6 +13,5 @@ public partial class LoginView : UserControl
         InitializeComponent();
 
         PhysioLoginButton.Click += (s, e) => OnLoginSuccess?.Invoke("Physiotherapist");
-        PatientLoginButton.Click += (s, e) => OnLoginSuccess?.Invoke("Patient");
     }
 }

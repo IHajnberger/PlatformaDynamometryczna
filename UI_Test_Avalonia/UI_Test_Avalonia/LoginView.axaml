@@ -6,7 +6,8 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Class="UI_Test_Avalonia.LoginView">
 
-    <Border Background="#1e1e1e" BorderBrush="#2d2d2d" BorderThickness="1"
+    <Border Background="{DynamicResource SurfaceBrush}" 
+            BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
             CornerRadius="20" Padding="40"
             MaxWidth="420" MaxHeight="440"
             HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -15,39 +16,28 @@
             <StackPanel Spacing="6" HorizontalAlignment="Center">
                 <fa:SymbolIcon Symbol="Contact" FontSize="48" Foreground="#3b82f6" HorizontalAlignment="Center"/>
                 <TextBlock Text="PLACEHOLDER" FontSize="22" FontWeight="Bold"
-                           Foreground="White" HorizontalAlignment="Center"/>
+                           Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                 <TextBlock Text="System analizy asymetrii" FontSize="13"
-                           Foreground="Gray" HorizontalAlignment="Center"/>
+                           Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
             </StackPanel>
 
-            <Border Background="#2d2d2d" Height="1" Margin="0,4"/>
+            <Border Background="{DynamicResource SurfaceBorderBrush}" Height="1" Margin="0,4"/>
 
             <TextBlock Text="Wybierz profil logowania:" FontSize="14"
-                       Foreground="White" HorizontalAlignment="Center"/>
+                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
 
             <Button x:Name="PhysioLoginButton"
-                    HorizontalAlignment="Stretch" Height="48"
-                    CornerRadius="10" Background="#1d4ed8" BorderThickness="0">
+                    Classes="ModernCard"
+                    Height="48">
                 <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                    <fa:SymbolIcon Symbol="People" FontSize="18" Foreground="White"/>
-                    <TextBlock Text="Zaloguj jako Fizjoterapeuta" Foreground="White"
-                               FontWeight="SemiBold" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-
-            <Button x:Name="PatientLoginButton"
-                    HorizontalAlignment="Stretch" Height="48"
-                    CornerRadius="10" Background="#2d2d2d"
-                    BorderBrush="#3d3d3d" BorderThickness="1">
-                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                    <fa:SymbolIcon Symbol="Contact" FontSize="18" Foreground="White"/>
-                    <TextBlock Text="Zaloguj jako Pacjent" Foreground="White"
+                    <fa:SymbolIcon Symbol="People" FontSize="18" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Zaloguj jako Fizjoterapeuta" Foreground="{DynamicResource TextPrimaryBrush}"
                                FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
 
             <TextBlock Text="Wersja demonstracyjna (tryb tymczasowy)"
-                       FontSize="11" Foreground="#444" HorizontalAlignment="Center"/>
+                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
         </StackPanel>
     </Border>
 

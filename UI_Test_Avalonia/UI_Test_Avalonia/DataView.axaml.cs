@@ -19,6 +19,9 @@ public partial class DataView : UserControl, IDisposable
 {
     public event EventHandler? BackClicked;
     private readonly DispatcherTimer _renderTimer;
+
+    private readonly Stopwatch _sessionStopwatch = new();
+    
     private bool _isConnected;
 
     private readonly ObservableCollection<double> _leftValues = new();
@@ -297,7 +300,11 @@ public partial class DataView : UserControl, IDisposable
         _renderTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
         _renderTimer.Tick += RenderTimer_Tick;
 
-        DetachedFromVisualTree += (_, _) => _renderTimer.Stop();
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _renderTimer.Stop();
+            _sessionStopwatch.Stop();
+        };
 
         StopSessionButton.Content = new Avalonia.Controls.StackPanel
         {
@@ -311,68 +318,81 @@ public partial class DataView : UserControl, IDisposable
         };
 
         StopSessionButton.Click += (s, e) =>
+{
+    if (_renderTimer.IsEnabled)
+    {
+
+        _renderTimer.Stop();
+        _sessionStopwatch.Stop(); 
+        
+        StopSessionButton.Content = new Avalonia.Controls.StackPanel
         {
-            if (_renderTimer.IsEnabled)
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 8,
+            Children =
             {
-                _renderTimer.Stop();
-                StopSessionButton.Content = new Avalonia.Controls.StackPanel
-                {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    Spacing = 8,
-                    Children =
-                    {
-                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
-                        new Avalonia.Controls.TextBlock { Text = "Start", FontWeight =Avalonia.Media.FontWeight.Bold}
-                    }
-                };
-                
-                _backupLeftValues = _leftValues.ToList();
-                _backupRightValues = _rightValues.ToList();
-                _backupLeftBuffer = _leftBuffer.ToList();
-                _backupRightBuffer = _rightBuffer.ToList();
-
-                _leftXAxis.MinLimit = null;
-                _leftXAxis.MaxLimit = null;
-                _rightXAxis.MinLimit = null;
-                _rightXAxis.MaxLimit = null;
-
-                FormatDataButton.IsVisible = true;
-                InstructionText.IsVisible = true;
-            }
-            else
-            {
-                _leftValues.Clear();
-                _rightValues.Clear();
-                _leftBuffer.Clear();
-                _rightBuffer.Clear();
-
-                MqttService.Instance.Device1Queue.Clear();
-                MqttService.Instance.Device2Queue.Clear();
-
-                _leftXAxis.MinLimit = 0;
-                _leftXAxis.MaxLimit = ViewWindowSize;
-                _rightXAxis.MinLimit = 0;
-                _rightXAxis.MaxLimit = ViewWindowSize;
-                
-                YAxes[0].MaxLimit = 50; 
-
-                _renderTimer.Start();
-                StopSessionButton.Content = new Avalonia.Controls.StackPanel
-                {
-                    Orientation = Avalonia.Layout.Orientation.Horizontal,
-                    Spacing = 8,
-                    Children =
-                    {
-                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Stop, FontSize = 16, Foreground = Brushes.Orange },
-                        new Avalonia.Controls.TextBlock { Text = "Stop" , FontWeight =Avalonia.Media.FontWeight.Bold}
-                    }
-                };
-                
-                FormatDataButton.IsVisible = false;
-                UndoFormatButton.IsVisible = false;
-                InstructionText.IsVisible = false;
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Play, FontSize = 16, Foreground = Brushes.LightGreen },
+                new Avalonia.Controls.TextBlock { Text = "Start", FontWeight =Avalonia.Media.FontWeight.Bold}
             }
         };
+        
+        _backupLeftValues = _leftValues.ToList();
+        _backupRightValues = _rightValues.ToList();
+        _backupLeftBuffer = _leftBuffer.ToList();
+        _backupRightBuffer = _rightBuffer.ToList();
+
+        _leftXAxis.MinLimit = null;
+        _leftXAxis.MaxLimit = null;
+        _rightXAxis.MinLimit = null;
+        _rightXAxis.MaxLimit = null;
+
+        FormatDataButton.IsVisible = true;
+        InstructionText.IsVisible = true;
+    }
+    else
+    {
+
+        MqttService.Instance.Device1Queue.Clear();
+        MqttService.Instance.Device2Queue.Clear();
+
+
+        _leftIsHistoryMode = false;
+        _rightIsHistoryMode = false;
+        
+        if (_leftValues.Count > ViewWindowSize)
+        {
+            _leftXAxis.MinLimit = _leftValues.Count - ViewWindowSize;
+            _leftXAxis.MaxLimit = _leftValues.Count;
+            _rightXAxis.MinLimit = _rightValues.Count - ViewWindowSize;
+            _rightXAxis.MaxLimit = _rightValues.Count;
+        }
+        else
+        {
+            _leftXAxis.MinLimit = 0;
+            _leftXAxis.MaxLimit = ViewWindowSize;
+            _rightXAxis.MinLimit = 0;
+            _rightXAxis.MaxLimit = ViewWindowSize;
+        }
+
+        _renderTimer.Start();
+        _sessionStopwatch.Start(); 
+
+        StopSessionButton.Content = new Avalonia.Controls.StackPanel
+        {
+            Orientation = Avalonia.Layout.Orientation.Horizontal,
+            Spacing = 8,
+            Children =
+            {
+                new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Stop, FontSize = 16, Foreground = Brushes.Orange },
+                new Avalonia.Controls.TextBlock { Text = "Stop" , FontWeight =Avalonia.Media.FontWeight.Bold}
+            }
+        };
+        
+        FormatDataButton.IsVisible = false;
+        UndoFormatButton.IsVisible = false;
+        InstructionText.IsVisible = false;
+    }
+};
 
         MarkPeakButton.Click += (s, e) => { };
 
@@ -392,10 +412,17 @@ public partial class DataView : UserControl, IDisposable
             _rightXAxis.MaxLimit = ViewWindowSize;
             
             YAxes[0].MaxLimit = 50; 
+
+            _sessionStopwatch.Reset();
+            SessionTimerText.Text = "00:00:00"; 
         };
     }
 
-    public void Dispose() => _renderTimer.Stop();
+    public void Dispose()
+    {
+        _renderTimer.Stop();
+        _sessionStopwatch.Stop();
+    }
 
     private void ApplyExerciseFilter()
     {
@@ -420,12 +447,16 @@ public partial class DataView : UserControl, IDisposable
         SessionPatientText.Text = patient != null ? patient.FullName : "Nie wybrano";
         SessionExerciseText.Text = exercise != null ? exercise.Name : "Nie wybrano";
 
-        SessionPatientText.Foreground = patient != null ? Brushes.White : Brushes.Orange;
-        SessionExerciseText.Foreground = exercise != null ? Brushes.White : Brushes.Orange;
+        if (patient != null) SessionPatientText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush")); else SessionPatientText.Foreground = Brushes.Orange;
+
+        if (exercise != null) SessionExerciseText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush")); else SessionExerciseText.Foreground = Brushes.Orange;
     }
 
     private void RenderTimer_Tick(object? sender, EventArgs e)
     {
+
+        SessionTimerText.Text = _sessionStopwatch.Elapsed.ToString(@"mm\:ss\:ff");
+
         bool isCurrentlyConnected = (DateTime.Now - MqttService.Instance.LastPacketTime).TotalMilliseconds < 4000;
 
         if (isCurrentlyConnected != _isConnected)

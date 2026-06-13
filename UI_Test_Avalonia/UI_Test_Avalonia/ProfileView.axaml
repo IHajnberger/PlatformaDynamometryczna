@@ -16,6 +16,13 @@
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Stretch"/>
         </Style>
+        <Style Selector="Button.DangerCard">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#ef4444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.DangerCard:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#11ef4444"/> </Style>
     </UserControl.Styles>
 
     <Grid Margin="30" RowDefinitions="Auto, *">
@@ -28,13 +35,13 @@
                 <TextBlock x:Name="PatientNameLabel" Text="Profil" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                 <TextBlock x:Name="StatusText" Text="Dane i notatki kliniczne" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
+            
             <Button Grid.Column="2"
                     x:Name="DeletePatientButton"
                     VerticalAlignment="Center"
+                    Classes="DangerCard"
                     Padding="12,8"
                     CornerRadius="8"
-                    Background="#3b1212"
-                    BorderThickness="0"
                     IsVisible="False">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <fa:SymbolIcon Symbol="Delete" FontSize="15" Foreground="#ef4444"/>

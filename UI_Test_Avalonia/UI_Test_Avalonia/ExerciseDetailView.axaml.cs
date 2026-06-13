@@ -497,111 +497,129 @@ public partial class ExerciseDetailView : UserControl
             ExerciseParam.LoadRatio, ExerciseParam.AsymmetryIndex, ExerciseParam.StabilizationTime, ExerciseParam.WeightTransferSpeed, ExerciseParam.FatigueIndex, ExerciseParam.ControlScore
         ));
     }
-    private Border MakeHeroCard(string title, string subtitle, string desc, string bgColor, string accentColor, string icon)
+   private Border MakeHeroCard(string title, string subtitle, string desc, string bgColor, string accentColor, string icon)
+{
+    // 1. Główny kontener
+    var mainBorder = new Border
     {
-        return new Border
-        {
-            Background = SolidColorBrush.Parse("#1e1e1e"),
-            BorderBrush = SolidColorBrush.Parse("#2d2d2d"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(16),
-            Padding = new Avalonia.Thickness(28),
-            Child = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitions("Auto, *"),
-                Children =
-                {
-                    new Border
-                    {
-                        Width = 64, Height = 64,
-                        CornerRadius = new Avalonia.CornerRadius(18),
-                        Background = SolidColorBrush.Parse(bgColor),
-                        Margin = new Avalonia.Thickness(0, 0, 20, 0),
-                        VerticalAlignment = VerticalAlignment.Top,
-                        Child = new FluentAvalonia.UI.Controls.SymbolIcon
-                        {
-                            Symbol = Enum.Parse<FluentAvalonia.UI.Controls.Symbol>(icon),
-                            FontSize = 28,
-                            Foreground = SolidColorBrush.Parse(accentColor),
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center
-                        }
-                    }.Also(b => Grid.SetColumn(b, 0)),
-                    new StackPanel
-                    {
-                        Spacing = 8,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Children =
-                        {
-                            new TextBlock { Text = title, FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Brushes.White },
-                            new Border
-                            {
-                                Background = SolidColorBrush.Parse(bgColor),
-                                CornerRadius = new Avalonia.CornerRadius(6),
-                                Padding = new Avalonia.Thickness(10, 4),
-                                HorizontalAlignment = HorizontalAlignment.Left,
-                                Child = new TextBlock { Text = subtitle, FontSize = 12, Foreground = SolidColorBrush.Parse(accentColor) }
-                            },
-                            new TextBlock { Text = desc, FontSize = 13, Foreground = SolidColorBrush.Parse("#aaaaaa"), TextWrapping = TextWrapping.Wrap }
-                        }
-                    }.Also(sp => Grid.SetColumn(sp, 1))
-                }
-            }
-        };
-    }
+        BorderThickness = new Avalonia.Thickness(1),
+        CornerRadius = new Avalonia.CornerRadius(16),
+        Padding = new Avalonia.Thickness(28)
+    };
+    mainBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SurfaceBrush"));
+    mainBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
 
-    private Border MakeSectionCard(string title, string icon, string accentColor, string body)
+    // 2. Ikona w lewej kolumnie
+    var iconBorder = new Border
     {
-        return new Border
+        Width = 64, Height = 64,
+        CornerRadius = new Avalonia.CornerRadius(18),
+        Background = SolidColorBrush.Parse(bgColor),
+        Margin = new Avalonia.Thickness(0, 0, 20, 0),
+        VerticalAlignment = VerticalAlignment.Top,
+        Child = new FluentAvalonia.UI.Controls.SymbolIcon
         {
-            Background = SolidColorBrush.Parse("#2d2d2d"),
-            BorderBrush = SolidColorBrush.Parse("#3d3d3d"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(16),
-            Padding = new Avalonia.Thickness(24),
-            Child = new StackPanel
-            {
-                Spacing = 14,
-                Children =
-                {
-                    new StackPanel
-                    {
-                        Orientation = Orientation.Horizontal,
-                        Spacing = 10,
-                        Children =
-                        {
-                            new FluentAvalonia.UI.Controls.SymbolIcon
-                            {
-                                Symbol = Enum.Parse<FluentAvalonia.UI.Controls.Symbol>(icon),
-                                FontSize = 18,
-                                Foreground = SolidColorBrush.Parse(accentColor)
-                            },
-                            new TextBlock
-                            {
-                                Text = title,
-                                FontSize = 15,
-                                FontWeight = FontWeight.SemiBold,
-                                Foreground = Brushes.White,
-                                VerticalAlignment = VerticalAlignment.Center
-                            }
-                        }
-                    },
-                    new TextBlock
-                    {
-                        Text = body,
-                        FontSize = 13,
-                        Foreground = SolidColorBrush.Parse("#cccccc"),
-                        TextWrapping = TextWrapping.Wrap,
-                        LineHeight = 22
-                    }
-                }
-            }
-        };
-    }
-    // nwm co z tym zrobić tbh
+            Symbol = Enum.Parse<FluentAvalonia.UI.Controls.Symbol>(icon),
+            FontSize = 28,
+            Foreground = SolidColorBrush.Parse(accentColor),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        }
+    };
+    Grid.SetColumn(iconBorder, 0);
+
+    // 3. Teksty w prawej kolumnie
+    var titleBlock = new TextBlock { Text = title, FontSize = 20, FontWeight = FontWeight.Bold };
+    titleBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
+
+    var subtitleBorder = new Border
+    {
+        Background = SolidColorBrush.Parse(bgColor),
+        CornerRadius = new Avalonia.CornerRadius(6),
+        Padding = new Avalonia.Thickness(10, 4),
+        HorizontalAlignment = HorizontalAlignment.Left,
+        Child = new TextBlock { Text = subtitle, FontSize = 12, Foreground = SolidColorBrush.Parse(accentColor) }
+    };
+
+    var descBlock = new TextBlock { Text = desc, FontSize = 13, TextWrapping = TextWrapping.Wrap };
+    descBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
+
+    var textStackPanel = new StackPanel
+    {
+        Spacing = 8,
+        VerticalAlignment = VerticalAlignment.Center,
+        Children = { titleBlock, subtitleBorder, descBlock }
+    };
+    Grid.SetColumn(textStackPanel, 1);
+
+    // 4. Składanie całości
+    mainBorder.Child = new Grid
+    {
+        ColumnDefinitions = new ColumnDefinitions("Auto, *"),
+        Children = { iconBorder, textStackPanel }
+    };
+
+    return mainBorder;
+}
+
+private Border MakeSectionCard(string title, string icon, string accentColor, string body)
+{
+
+    var mainBorder = new Border
+    {
+        BorderThickness = new Avalonia.Thickness(1),
+        CornerRadius = new Avalonia.CornerRadius(16),
+        Padding = new Avalonia.Thickness(24)
+    };
+    mainBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SurfaceBrush"));
+    mainBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
+
+    var titleIcon = new FluentAvalonia.UI.Controls.SymbolIcon
+    {
+        Symbol = Enum.Parse<FluentAvalonia.UI.Controls.Symbol>(icon),
+        FontSize = 18,
+        Foreground = SolidColorBrush.Parse(accentColor)
+    };
+
+    var titleBlock = new TextBlock
+    {
+        Text = title,
+        FontSize = 15,
+        FontWeight = FontWeight.SemiBold,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+    titleBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
+
+    var headerStack = new StackPanel
+    {
+        Orientation = Orientation.Horizontal,
+        Spacing = 10,
+        Children = { titleIcon, titleBlock }
+    };
+
+
+    var bodyBlock = new TextBlock
+    {
+        Text = body,
+        FontSize = 13,
+        TextWrapping = TextWrapping.Wrap,
+        LineHeight = 22
+    };
+    bodyBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
+
+
+    mainBorder.Child = new StackPanel
+    {
+        Spacing = 14,
+        Children = { headerStack, bodyBlock }
+    };
+
+    return mainBorder;
+}
+
     private Border MakePhasesCard()
     {
-        // Dostosowanie faz ruchu do przysiadu (usuwamy fazę lotu)
+
         var phases = new[]
         {
             ("#3b82f6", "1", "Faza początkowa (Nieruchome stanie)", "Pacjent stabilizuje pozycję na platformie. Rejestracja wagi wyjściowej jako punktu odniesienia."),
@@ -678,132 +696,143 @@ public partial class ExerciseDetailView : UserControl
             Child = panel
         };
     }
-    // rozszerzona o poszczególne parametry
-    private Border MakeNormsCard(params ExerciseParam[] parameters)
-    {
-        var panel = new StackPanel { Spacing = 10 };
 
-        panel.Children.Add(new StackPanel
+private Border MakeNormsCard(params ExerciseParam[] parameters)
+{
+    var panel = new StackPanel { Spacing = 10 };
+
+    var headerIcon = new FluentAvalonia.UI.Controls.SymbolIcon
+    {
+        Symbol = FluentAvalonia.UI.Controls.Symbol.Ruler,
+        FontSize = 18,
+        Foreground = SolidColorBrush.Parse("#06b6d4")
+    };
+
+    var headerText = new TextBlock
+    {
+        Text = "Normy i wartości referencyjne",
+        FontSize = 15,
+        FontWeight = FontWeight.SemiBold,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+    headerText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
+
+    panel.Children.Add(new StackPanel
+    {
+        Orientation = Orientation.Horizontal,
+        Spacing = 10,
+        Margin = new Avalonia.Thickness(0, 0, 0, 4),
+        Children = { headerIcon, headerText }
+    });
+
+    foreach (var parameter in parameters.Distinct())
+    {
+        var rows = GetNormRows(parameter);
+
+        if (rows.Count == 0)
+            continue;
+
+        var paramNameText = new TextBlock
         {
-            Orientation = Orientation.Horizontal,
-            Spacing = 10,
-            Margin = new Avalonia.Thickness(0, 0, 0, 4),
-            Children =
+            Text = GetParameterDisplayName(parameter),
+            FontSize = 14,
+            FontWeight = FontWeight.SemiBold,
+            Margin = new Avalonia.Thickness(0, 10, 0, 4)
+        };
+        paramNameText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
+        
+        panel.Children.Add(paramNameText);
+
+        foreach (var (label, value, color) in rows)
         {
-            new FluentAvalonia.UI.Controls.SymbolIcon
+            var row = new Grid
             {
-                Symbol = FluentAvalonia.UI.Controls.Symbol.Ruler,
-                FontSize = 18,
-                Foreground = SolidColorBrush.Parse("#06b6d4")
-            },
-            new TextBlock
+                ColumnDefinitions = new ColumnDefinitions("*, Auto")
+            };
+
+            var rowLabelText = new TextBlock
             {
-                Text = "Normy i wartości referencyjne",
-                FontSize = 15,
-                FontWeight = FontWeight.SemiBold,
-                Foreground = Brushes.White,
+                Text = label,
+                FontSize = 13,
                 VerticalAlignment = VerticalAlignment.Center
-            }
-        }
-        });
+            };
+            rowLabelText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
+            
+            row.Children.Add(rowLabelText);
 
-        foreach (var parameter in parameters.Distinct())
-        {
-            var rows = GetNormRows(parameter);
-
-            if (rows.Count == 0)
-                continue;
-
-            panel.Children.Add(new TextBlock
+            var badge = new Border
             {
-                Text = GetParameterDisplayName(parameter),
-                FontSize = 14,
-                FontWeight = FontWeight.SemiBold,
-                Foreground = Brushes.White,
-                Margin = new Avalonia.Thickness(0, 10, 0, 4)
-            });
-
-            foreach (var (label, value, color) in rows)
-            {
-                var row = new Grid
+                Background = SolidColorBrush.Parse(color + "22"), 
+                BorderBrush = SolidColorBrush.Parse(color),
+                BorderThickness = new Avalonia.Thickness(1),
+                CornerRadius = new Avalonia.CornerRadius(6),
+                Padding = new Avalonia.Thickness(10, 4),
+                Child = new TextBlock
                 {
-                    ColumnDefinitions = new ColumnDefinitions("*, Auto")
-                };
-
-                row.Children.Add(new TextBlock
-                {
-                    Text = label,
+                    Text = value,
                     FontSize = 13,
-                    Foreground = SolidColorBrush.Parse("#cccccc"),
-                    VerticalAlignment = VerticalAlignment.Center
-                });
+                    FontWeight = FontWeight.Bold,
+                    Foreground = SolidColorBrush.Parse(color)
+                }
+            };
 
-                var badge = new Border
-                {
-                    Background = SolidColorBrush.Parse(color + "22"),
-                    BorderBrush = SolidColorBrush.Parse(color),
-                    BorderThickness = new Avalonia.Thickness(1),
-                    CornerRadius = new Avalonia.CornerRadius(6),
-                    Padding = new Avalonia.Thickness(10, 4),
-                    Child = new TextBlock
-                    {
-                        Text = value,
-                        FontSize = 13,
-                        FontWeight = FontWeight.Bold,
-                        Foreground = SolidColorBrush.Parse(color)
-                    }
-                };
+            Grid.SetColumn(badge, 1);
+            row.Children.Add(badge);
+            
+            var rowBorder = new Border
+            {
+                BorderThickness = new Avalonia.Thickness(1),
+                CornerRadius = new Avalonia.CornerRadius(10),
+                Padding = new Avalonia.Thickness(16, 10),
+                Child = row
+            };
+            rowBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("AppBackgroundBrush"));
+            rowBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
 
-                Grid.SetColumn(badge, 1);
-                row.Children.Add(badge);
-
-                panel.Children.Add(new Border
-                {
-                    Background = SolidColorBrush.Parse("#1a1a1a"),
-                    BorderBrush = SolidColorBrush.Parse("#3d3d3d"),
-                    BorderThickness = new Avalonia.Thickness(1),
-                    CornerRadius = new Avalonia.CornerRadius(10),
-                    Padding = new Avalonia.Thickness(16, 10),
-                    Child = row
-                });
-            }
+            panel.Children.Add(rowBorder);
         }
-
-        panel.Children.Add(new TextBlock
-        {
-            Text = "* Wartości mają charakter orientacyjny i powinny być interpretowane w kontekście wieku, stanu zdrowia oraz celu terapii.",
-            FontSize = 11,
-            Foreground = SolidColorBrush.Parse("#555"),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Avalonia.Thickness(0, 8, 0, 0)
-        });
-
-        return new Border
-        {
-            Background = SolidColorBrush.Parse("#2d2d2d"),
-            BorderBrush = SolidColorBrush.Parse("#3d3d3d"),
-            BorderThickness = new Avalonia.Thickness(1),
-            CornerRadius = new Avalonia.CornerRadius(16),
-            Padding = new Avalonia.Thickness(24),
-            Child = panel
-        };
     }
-    private static string GetParameterDisplayName(ExerciseParam param)
+    
+    var footerText = new TextBlock
     {
-        return param switch
-        {
-            ExerciseParam.AsymmetryIndex => "Asymmetry Index (ASI)",
-            ExerciseParam.LoadRatio => "Load Ratio",
-            ExerciseParam.StabilityIndex => "Stability Index",
-            ExerciseParam.SwayVelocity => "Sway Velocity",
-            ExerciseParam.StabilizationTime => "Stabilization Time",
-            ExerciseParam.ForceVariability => "Force Variability",
-            ExerciseParam.ControlScore => "Control Score",
-            ExerciseParam.FatigueIndex => "Fatigue Index",
-            ExerciseParam.WeightTransferSpeed => "Weight Transfer Speed",
-            _ => param.ToString()
-        };
-    }
+        Text = "* Wartości mają charakter orientacyjny i powinny być interpretowane w kontekście wieku, stanu zdrowia oraz celu terapii.",
+        FontSize = 11,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Avalonia.Thickness(0, 8, 0, 0)
+    };
+    footerText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
+    
+    panel.Children.Add(footerText);
+    
+    var mainBorder = new Border
+    {
+        BorderThickness = new Avalonia.Thickness(1),
+        CornerRadius = new Avalonia.CornerRadius(16),
+        Padding = new Avalonia.Thickness(24),
+        Child = panel
+    };
+    mainBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SurfaceBrush"));
+    mainBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
+
+    return mainBorder;
+}
+
+private static string GetParameterDisplayName(ExerciseParam param)
+{
+    return param switch
+    {
+        ExerciseParam.AsymmetryIndex => "Asymmetry Index (ASI)",
+        ExerciseParam.LoadRatio => "Load Ratio",
+        ExerciseParam.StabilityIndex => "Stability Index",
+        ExerciseParam.SwayVelocity => "Sway Velocity",
+        ExerciseParam.StabilizationTime => "Stabilization Time",
+        ExerciseParam.ForceVariability => "Force Variability",
+        ExerciseParam.ControlScore => "Control Score",
+        ExerciseParam.FatigueIndex => "Fatigue Index",
+        ExerciseParam.WeightTransferSpeed => "Weight Transfer Speed",
+        _ => param.ToString()
+    };
+}
     private static List<(string Label, string Value, string Color)> GetNormRows(ExerciseParam param)
     {
         return param switch

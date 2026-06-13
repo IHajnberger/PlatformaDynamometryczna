@@ -2128,24 +2128,31 @@
     ]
   },
   "packageFolders": {
-    "/home/userbrigh/.nuget/packages/": {}
+    "C:\\Users\\mmule\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/UI_Test_Avalonia.csproj",
+      "projectUniqueName": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
       "projectName": "UI_Test_Avalonia",
-      "projectPath": "/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/UI_Test_Avalonia.csproj",
-      "packagesPath": "/home/userbrigh/.nuget/packages/",
-      "outputPath": "/home/userbrigh/Documents/Studia_Repo_inne/PlatformaDynamometryczna/UI_Test_Avalonia/UI_Test_Avalonia/obj/",
+      "projectPath": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\UI_Test_Avalonia.csproj",
+      "packagesPath": "C:\\Users\\mmule\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\mmule\\Documents\\GitHub\\PlatformaDynamometryczna\\UI_Test_Avalonia\\UI_Test_Avalonia\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "/home/userbrigh/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\mmule\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -2164,7 +2171,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -2226,26 +2233,12 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.15, 8.0.15]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.linux-x64",
-            "version": "[8.0.15, 8.0.15]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.15, 8.0.15]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

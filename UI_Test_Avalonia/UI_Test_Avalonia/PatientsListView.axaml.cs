@@ -109,71 +109,79 @@ public partial class PatientsListView : UserControl
     }
 
     private Border BuildPatientCard(Patient patient, string initials, string avatarColor)
+{
+    var avatar = new Border
     {
-        var avatar = new Border
+        Width = 42,
+        Height = 42,
+        CornerRadius = new Avalonia.CornerRadius(21),
+        Background = SolidColorBrush.Parse(avatarColor),
+        Margin = new Avalonia.Thickness(0, 0, 14, 0),
+        Child = new TextBlock
         {
-            Width = 42,
-            Height = 42,
-            CornerRadius = new Avalonia.CornerRadius(21),
-            Background = SolidColorBrush.Parse(avatarColor),
-            Margin = new Avalonia.Thickness(0, 0, 14, 0),
-            Child = new TextBlock
-            {
-                Text = initials,
-                FontSize = 14,
-                FontWeight = FontWeight.Bold,
-                Foreground = Brushes.White,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            }
-        };
-
-        var phone = string.IsNullOrWhiteSpace(patient.PhoneNumber) ? "Brak telefonu" : patient.PhoneNumber;
-        var dob = patient.BirthDate == default ? "Brak daty" : patient.BirthDate.ToString("dd.MM.yyyy");
-
-        var infoPanel = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
-        infoPanel.Children.Add(new TextBlock
-        {
-            Text = patient.FullName,
-            FontSize = 15,
+            Text = initials,
+            FontSize = 14,
             FontWeight = FontWeight.Bold,
-            Foreground = Brushes.White
-        });
-
-        var subLine = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
-        subLine.Children.Add(new TextBlock { Text = $"ur. {dob}", FontSize = 12, Foreground = Brushes.Gray });
-        subLine.Children.Add(new TextBlock { Text = phone, FontSize = 12, Foreground = Brushes.Gray });
-        infoPanel.Children.Add(subLine);
-
-        var chevron = new FluentAvalonia.UI.Controls.SymbolIcon
-        {
-            Symbol = FluentAvalonia.UI.Controls.Symbol.ChevronRight,
-            FontSize = 18,
-            Foreground = Brushes.Gray,
+            Foreground = Brushes.White, 
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
-        };
+        }
+    };
 
-        var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
-        grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-        grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+    var phone = string.IsNullOrWhiteSpace(patient.PhoneNumber) ? "Brak telefonu" : patient.PhoneNumber;
+    var dob = patient.BirthDate == default ? "Brak daty" : patient.BirthDate.ToString("dd.MM.yyyy");
 
-        Grid.SetColumn(avatar, 0);
-        Grid.SetColumn(infoPanel, 1);
-        Grid.SetColumn(chevron, 2);
+    var infoPanel = new StackPanel { Spacing = 3, VerticalAlignment = VerticalAlignment.Center };
+ 
+    var nameText = new TextBlock
+    {
+        Text = patient.FullName,
+        FontSize = 15,
+        FontWeight = FontWeight.Bold
+    };
+    nameText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
+    infoPanel.Children.Add(nameText);
 
-        grid.Children.Add(avatar);
-        grid.Children.Add(infoPanel);
-        grid.Children.Add(chevron);
+    var subLine = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+    var dobText = new TextBlock { Text = $"ur. {dob}", FontSize = 12 };
+    dobText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
+    
+    var phoneText = new TextBlock { Text = phone, FontSize = 12 };
+    phoneText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
 
-        var cardButton = new Button
-        {
-            Classes = { "DashboardCard" },
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Content = grid
-        };
-        cardButton.Click += (s, e) => PatientSelected?.Invoke(this, patient);
+    subLine.Children.Add(dobText);
+    subLine.Children.Add(phoneText);
+    infoPanel.Children.Add(subLine);
+    
+    var chevron = new FluentAvalonia.UI.Controls.SymbolIcon
+    {
+        Symbol = FluentAvalonia.UI.Controls.Symbol.ChevronRight,
+        FontSize = 18,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+    chevron.Bind(FluentAvalonia.UI.Controls.SymbolIcon.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
 
-        return new Border { Child = cardButton };
-    }
+    var grid = new Grid();
+    grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+    grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+    grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+
+    Grid.SetColumn(avatar, 0);
+    Grid.SetColumn(infoPanel, 1);
+    Grid.SetColumn(chevron, 2);
+
+    grid.Children.Add(avatar);
+    grid.Children.Add(infoPanel);
+    grid.Children.Add(chevron);
+
+    var cardButton = new Button
+    {
+        Classes = { "DashboardCard" },
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        Content = grid
+    };
+    cardButton.Click += (s, e) => PatientSelected?.Invoke(this, patient);
+
+    return new Border { Child = cardButton };
+}
 }

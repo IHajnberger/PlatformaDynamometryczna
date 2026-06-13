@@ -53,7 +53,9 @@
                     <TextBlock x:Name="SubStatusText" Text="Zarządzaj kartoteką pacjentów" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <Button Grid.Column="2" Name="AddPatientButton"
-                        VerticalAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
                         Padding="14,10"
                         CornerRadius="10"
                         Background="#3b82f6"
@@ -124,6 +126,8 @@
 
                     <Button Name="ConfirmAddButton"
                             HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
                             Height="42"
                             CornerRadius="10"
                             Background="#3b82f6"

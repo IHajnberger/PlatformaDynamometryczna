@@ -208,7 +208,7 @@
                         <DockPanel Grid.Row="0" Margin="0,0,0,10">
                             <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                 <TextBlock Text="Wykresy Siły (Lewa / Prawa noga)" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="InstructionText" Text="(Zatrzymaj sesję, przybliż scrollem interesujący fragment i kliknij 'Przytnij')" FontSize="12" Foreground="Gray" VerticalAlignment="Center" IsVisible="False"/>
+                                <TextBlock x:Name="InstructionText" Text="(Zatrzymaj sesję, przybliż scrollem interesujący fragment i kliknij 'Przytnij')" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" IsVisible="False"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
                                 <Button x:Name="UndoFormatButton" Content="Cofnij" Classes="ModernCard" CornerRadius="6" Padding="12,5" Background="#6b7280" IsVisible="False"/>

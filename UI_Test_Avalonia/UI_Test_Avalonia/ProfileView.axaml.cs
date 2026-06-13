@@ -68,7 +68,7 @@ public partial class ProfileView : UserControl
         if (!string.IsNullOrWhiteSpace(patient.Notes))
         {
             NotesViewText.Text = patient.Notes;
-            NotesViewText.Foreground = Brushes.White;
+            NotesViewText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
         }
         EditNotesButton.Click += (s, e) => EnterEditMode();
         CancelEditButton.Click += (s, e) => ExitEditMode(save: false);
@@ -104,8 +104,9 @@ public partial class ProfileView : UserControl
         NotesViewText.Text = string.IsNullOrWhiteSpace(patient.Notes)
             ? "Brak notatek od fizjoterapeuty."
             : patient.Notes;
-        NotesViewText.Foreground = string.IsNullOrWhiteSpace(patient.Notes)
-            ? Brushes.Gray : Brushes.White;
+
+        string brushName = string.IsNullOrWhiteSpace(patient.Notes) ? "TextSecondaryBrush" : "TextPrimaryBrush";
+        NotesViewText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable(brushName));
 
         TrendSectionBorder.IsVisible = true;
         SessionSectionBorder.IsVisible = true;
@@ -117,15 +118,26 @@ public partial class ProfileView : UserControl
     {
         PatientNameLabel.Text = patient.FullName;
         FullNameLabel.Text = patient.FullName;
+        
         BirthDateLabel.Text = patient.BirthDate == default
             ? "Nie podano"
             : patient.BirthDate.ToString("dd.MM.yyyy");
-        IdLabel.Text = patient.Id.ToString()[..8].ToUpper();
 
-        var parts = patient.FullName.Split(' ');
-        AvatarInitials.Text = parts.Length >= 2
-            ? $"{parts[0][0]}{parts[1][0]}"
-            : patient.FullName[..Math.Min(2, patient.FullName.Length)].ToUpper();
+        // Bezpieczne parsowanie ID
+        string idStr = patient.Id.ToString();
+        IdLabel.Text = idStr.Length >= 8 ? idStr[..8].ToUpper() : idStr.ToUpper();
+
+        // Bezpieczne pobieranie inicjałów bez błędu IndexOutOfRange
+        string f = string.IsNullOrWhiteSpace(patient.FirstName) ? "" : patient.FirstName[0].ToString();
+        string l = string.IsNullOrWhiteSpace(patient.LastName) ? "" : patient.LastName[0].ToString();
+        string initials = (f + l).ToUpper();
+
+        if (string.IsNullOrWhiteSpace(initials))
+        {
+            initials = "?";
+        }
+
+        AvatarInitials.Text = initials;
     }
 
     private void LoadTrendChart(Patient patient)
@@ -141,24 +153,22 @@ public partial class ProfileView : UserControl
         var sorted = new List<Session>(sessions);
         sorted.Sort((a, b) => a.Date.CompareTo(b.Date));
 
-        
         var data = sorted.Select(s => (
             Value: s.AsymmetryIndex,
             Label: s.Date.ToString("dd.MM")
         )).ToList();
         
         RenderChart(data);
-        
     }
 
     private void LoadPlaceholderChart()
     {
         var data = new List<(double Value, string Label)>
-    {
-        (14.0, "01.05"), (10.0, "04.05"), (-8.0, "08.05"),
-        (6.0, "12.05"), (-4.0, "15.05"), (3.0, "19.05"),
-        (-2.0, "22.05"), (1.0, "26.05")
-    };
+        {
+            (14.0, "01.05"), (10.0, "04.05"), (-8.0, "08.05"),
+            (6.0, "12.05"), (-4.0, "15.05"), (3.0, "19.05"),
+            (-2.0, "22.05"), (1.0, "26.05")
+        };
         RenderChart(data);
     }
 
@@ -183,23 +193,31 @@ public partial class ProfileView : UserControl
 
         using var bitmap = new SKBitmap(W, H);
         using var canvas = new SKCanvas(bitmap);
-
+        
+        // Zawsze przezroczyste tło, by odziedziczyć kolor po kontrolce z Avalonia
         canvas.Clear(SKColors.Transparent);
 
-        using var chartBgPaint = new SKPaint { Color = SKColor.Parse("#1a1a1a"), IsAntialias = true };
+        // Sprawdzamy aktualny motyw z Avalonia UI
+        bool isDarkTheme = Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+
+        var gridColor = isDarkTheme ? SKColor.Parse("#2d2d2d") : SKColor.Parse("#e5e7eb");
+        var textColor = isDarkTheme ? SKColor.Parse("#888888") : SKColor.Parse("#6b7280");
+        var zeroLineColor = isDarkTheme ? SKColor.Parse("#555555") : SKColor.Parse("#9ca3af");
+
+        using var chartBgPaint = new SKPaint { Color = SKColors.Transparent, IsAntialias = true };
         var chartRect = new SKRoundRect(new SKRect(padL, padT, W - padR, H - padB), 6);
         canvas.DrawRoundRect(chartRect, chartBgPaint);
 
         using var gridPaint = new SKPaint
         {
-            Color = SKColor.Parse("#2d2d2d"),
+            Color = gridColor,
             StrokeWidth = 1,
             IsAntialias = false
         };
 
         using var axisTextPaint = new SKPaint
         {
-            Color = SKColor.Parse("#888888"),
+            Color = textColor,
             TextSize = 12,
             IsAntialias = true,
             TextAlign = SKTextAlign.Right
@@ -224,7 +242,7 @@ public partial class ProfileView : UserControl
 
         using var zeroPaint = new SKPaint
         {
-            Color = SKColor.Parse("#555555"),
+            Color = zeroLineColor,
             StrokeWidth = 1.5f,
             IsAntialias = false
         };
@@ -247,8 +265,8 @@ public partial class ProfileView : UserControl
                 ? SKColor.Parse("#3b82f6")
                 : SKColor.Parse("#f59e0b");
             SKColor labelColor = isLeft
-                ? SKColor.Parse("#60a5fa")
-                : SKColor.Parse("#fbbf24");
+                ? (isDarkTheme ? SKColor.Parse("#60a5fa") : SKColor.Parse("#2563eb"))
+                : (isDarkTheme ? SKColor.Parse("#fbbf24") : SKColor.Parse("#d97706"));
 
             float barTop = isLeft ? (float)(zeroY - barH) : (float)zeroY;
             float barHeight = (float)Math.Max(barH, 2);
@@ -319,7 +337,7 @@ public partial class ProfileView : UserControl
 
             using var dateTextPaint = new SKPaint
             {
-                Color = SKColor.Parse("#888888"),
+                Color = textColor,
                 TextSize = 12,
                 IsAntialias = true,
                 TextAlign = SKTextAlign.Center
@@ -340,10 +358,8 @@ public partial class ProfileView : UserControl
 
         if (sessions.Count == 0)
         {
-            SessionHistoryPanel.Children.Add(new Border
+            var emptyBorder = new Border
             {
-                Background = SolidColorBrush.Parse("#1c2333"),
-                BorderBrush = SolidColorBrush.Parse("#2d3a55"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(14, 10),
@@ -352,12 +368,15 @@ public partial class ProfileView : UserControl
                     Orientation = Orientation.Horizontal,
                     Spacing = 8,
                     Children =
-                {
-                    new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Important, FontSize = 14, Foreground = SolidColorBrush.Parse("#3b82f6") },
-                    new TextBlock { Text = "Brak zapisanych sesji.", FontSize = 12, Foreground = SolidColorBrush.Parse("#60a5fa"), VerticalAlignment = VerticalAlignment.Center }
+                    {
+                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Important, FontSize = 14, Foreground = SolidColorBrush.Parse("#3b82f6") },
+                        new TextBlock { Text = "Brak zapisanych sesji.", FontSize = 12, Foreground = SolidColorBrush.Parse("#60a5fa"), VerticalAlignment = VerticalAlignment.Center }
+                    }
                 }
-                }
-            });
+            };
+            emptyBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SurfaceBrush"));
+            emptyBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
+            SessionHistoryPanel.Children.Add(emptyBorder);
             return;
         }
 
@@ -367,9 +386,8 @@ public partial class ProfileView : UserControl
 
         foreach (var session in toShow)
         {
-
             var asymColor = Math.Abs(session.AsymmetryIndex) > 10 ? "#ef4444" : "#10b981";
-            var asymBg = Math.Abs(session.AsymmetryIndex) > 10 ? "#3b1212" : "#1c3a2a";
+            var asymBg = Math.Abs(session.AsymmetryIndex) > 10 ? "#11ef4444" : "#1110b981";
             var dominantSide = session.AsymmetryIndex > 0 ? "L mocniejsza" : "R mocniejsza";
 
             var grid = new Grid();
@@ -384,7 +402,7 @@ public partial class ProfileView : UserControl
                 Width = 32,
                 Height = 32,
                 CornerRadius = new CornerRadius(8),
-                Background = SolidColorBrush.Parse("#1d3a6e"),
+                Background = SolidColorBrush.Parse("#113b82f6"),
                 Margin = new Thickness(0, 0, 12, 0),
                 Child = new FluentAvalonia.UI.Controls.SymbolIcon
                 {
@@ -399,11 +417,11 @@ public partial class ProfileView : UserControl
             var nameBlock = new TextBlock
             {
                 Text = session.ExerciseName,
-                Foreground = Brushes.White,
                 FontSize = 13,
                 FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center
             };
+            nameBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextPrimaryBrush"));
 
             var asymmetryBadge = new Border
             {
@@ -428,15 +446,15 @@ public partial class ProfileView : UserControl
             var dateBlock = new TextBlock
             {
                 Text = session.Date.ToString("dd.MM.yyyy  HH:mm"),
-                Foreground = Brushes.Gray,
                 FontSize = 12,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0, 0, 12, 0)
             };
+            dateBlock.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable("TextSecondaryBrush"));
 
             var detailBtn = new Button
             {
-                Background = SolidColorBrush.Parse("#1e3a5f"),
+                Background = SolidColorBrush.Parse("#113b82f6"),
                 BorderThickness = new Thickness(0),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(10, 6),
@@ -446,10 +464,10 @@ public partial class ProfileView : UserControl
                     Orientation = Orientation.Horizontal,
                     Spacing = 5,
                     Children =
-                {
-                    new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Open, FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6") },
-                    new TextBlock { Text = "Szczegóły", FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6"), VerticalAlignment = VerticalAlignment.Center }
-                }
+                    {
+                        new FluentAvalonia.UI.Controls.SymbolIcon { Symbol = FluentAvalonia.UI.Controls.Symbol.Open, FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6") },
+                        new TextBlock { Text = "Szczegóły", FontSize = 12, Foreground = SolidColorBrush.Parse("#3b82f6"), VerticalAlignment = VerticalAlignment.Center }
+                    }
                 }
             };
             detailBtn.Click += (s, e) => { SessionSelected?.Invoke(this, session); };
@@ -466,16 +484,19 @@ public partial class ProfileView : UserControl
             grid.Children.Add(dateBlock);
             grid.Children.Add(detailBtn);
 
-            SessionHistoryPanel.Children.Add(new Border
+            var rowBorder = new Border
             {
-                Background = SolidColorBrush.Parse("#1a1a1a"),
-                BorderBrush = SolidColorBrush.Parse("#3d3d3d"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(14, 10),
                 Margin = new Thickness(0, 0, 0, 6),
                 Child = grid
-            });
+            };
+            
+            rowBorder.Bind(Border.BackgroundProperty, this.GetResourceObservable("SurfaceHoverBrush"));
+            rowBorder.Bind(Border.BorderBrushProperty, this.GetResourceObservable("SurfaceBorderBrush"));
+            
+            SessionHistoryPanel.Children.Add(rowBorder);
         }
     }
 
@@ -501,8 +522,9 @@ public partial class ProfileView : UserControl
             NotesViewText.Text = string.IsNullOrWhiteSpace(notes)
                 ? "Brak notatek. Kliknij 'Edytuj' aby dodać."
                 : notes;
-            NotesViewText.Foreground = string.IsNullOrWhiteSpace(notes)
-                ? Brushes.Gray : Brushes.White;
+                
+            string brushName = string.IsNullOrWhiteSpace(notes) ? "TextSecondaryBrush" : "TextPrimaryBrush";
+            NotesViewText.Bind(TextBlock.ForegroundProperty, this.GetResourceObservable(brushName));
         }
         NotesViewMode.IsVisible = true;
         NotesEditBox.IsVisible = false;

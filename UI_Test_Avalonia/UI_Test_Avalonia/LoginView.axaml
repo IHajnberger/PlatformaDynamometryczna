@@ -15,7 +15,7 @@
 
             <StackPanel Spacing="6" HorizontalAlignment="Center">
                 <fa:SymbolIcon Symbol="Contact" FontSize="48" Foreground="#3b82f6" HorizontalAlignment="Center"/>
-                <TextBlock Text="PLACEHOLDER" FontSize="22" FontWeight="Bold"
+                <TextBlock Text="ForceView" FontSize="22" FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                 <TextBlock Text="System analizy asymetrii" FontSize="13"
                            Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>

@@ -394,8 +394,6 @@ public partial class DataView : UserControl, IDisposable
     }
 };
 
-        MarkPeakButton.Click += (s, e) => { };
-
         ClearAllButton.Click += (s, e) =>
         {
             _leftValues.Clear();

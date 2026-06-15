@@ -227,7 +227,7 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14">
                         <fa:SymbolIcon Symbol="Important" FontSize="40" Foreground="#ec4899"/>
                         <TextBlock Text="O programie" FontWeight="SemiBold" FontSize="18" HorizontalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Informacje o systemie PLACEHOLDER" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                        <TextBlock Text="Informacje o systemie ForceView" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
